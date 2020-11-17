@@ -1,15 +1,27 @@
-SERVER:
+SERVER SEND:
 
 get unit - GUT:
     (send after client send "ask unit - AUT")
     {HEADER}GUT~CATEGORY~NAME~DESCRIPTION~CLASS~SUBCLASS~COST~MEN~WEIGHT~HITPOINTS~ARMOR~SHIELD~MORALE~SPEED~MELEE_ATTACK~DEFENCE~DAMAGE~DAMAGE~AP~CHARGE~AMMUNITION~RANGE~RANGED_ATTACK~RANGED_DAMAGE~RANGED_AP~ATTRIBUTES
 
-CLIENT:
+
+
+CLIENT SEND:
 
 send unit - SUT:
     {HEADER}SUT~TABLE~NAME/ID
+create player - CRP:
+    {HEADER}CRP~NAME
+delete player - DLP:
+    {HEADER}DLP~NAME
+reset player - RSP:
+    {HEADER}RSP~NAME
+
+
 
 ERRORS:
+done - DON:
+    {HEADER}DON
 
 command not found - ERR1:
     {HEADER}ERR~1
@@ -17,3 +29,12 @@ unit not found - ERR2:
     {HEADER}ERR~2
 incorrect index - ERR3
     {HEADER}ERR~3
+user already exist - ERR4
+    {HEADER}ERR~4
+user not found - ERR5:
+    {HEADER}ERR~5
+
+
+
+
+client sends, server gets, client send DON or error

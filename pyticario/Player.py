@@ -1,7 +1,7 @@
-from pyticario import Unit
-import settings
 import sqlite3
-import os
+
+import settings
+from pyticario import Unit
 
 unit_args = ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
              'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
@@ -34,11 +34,18 @@ class Player(object):
             conn.close()
 
     def delete_player(self):
-        conn = sqlite3.connect(settings.DB)
-        conn.cursor().execute(f"DROP TABLE {self.name}")
-        conn.cursor().execute(f"DELETE FROM players WHERE name = '{self.name}'")
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(settings.DB)
+            conn.cursor().execute(f"DROP TABLE {self.name}")
+            conn.cursor().execute(f"DELETE FROM players WHERE name = '{self.name}'")
+            conn.commit()
+            conn.close()
+        except sqlite3.OperationalError:
+            try:
+                conn.close()
+            except NameError:
+                pass
+            raise FileNotFoundError(f"User {self.name} was not found.")
 
     def add_unit_by_name(self, unit_name):
         def get_unit_from_db(conn):
@@ -91,7 +98,11 @@ class Player(object):
 
     def reset_db(self):
         conn = sqlite3.connect(settings.DB)
-        conn.cursor().execute(f"DROP TABLE {self.name}")
+        try:
+            conn.cursor().execute(f"DROP TABLE {self.name}")
+        except sqlite3.OperationalError:
+            conn.close()
+            raise FileNotFoundError(f"User {self.name} was not found.")
         text = f"CREATE TABLE {self.name} ("
         for col, typ in zip(unit_args, unit_args_types):
             text += f"{col} {typ},"

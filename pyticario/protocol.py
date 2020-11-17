@@ -1,68 +1,42 @@
-from pyticario import Player
-from pyticario import Unit
-import socket
+from pyticario.network.Server import Server
+from pyticario.network.Client import Client
+from pyticario.network.common import parse
 
-HEADER = 6
-DELIMITER = '~'
+PORT = 1664
 
-
-class Server:
-
-    def commands(self):
-        commands = {
-            "SUT": self.send_unit
-        }
-
-        return commands
-
-    @staticmethod
-    def send_unit(params):
-        if params[2].isdigit():
-            try:
-                unt = Player.Player(params[1], False).get_unit(int(params[2])).as_tuple()
-            except IndexError:
-                Server.send_error(params[0], 3)
-                return
-        else:
-            try:
-                unt = Unit.Unit.unit_by_name(params[2]).as_tuple()
-            except FileNotFoundError:
-                Server.send_error(params[0], 2)
-                return
-        msg = "GUT~" + '~'.join([str(val) for val in unt])
-        send(params[0], msg)
-
-    @staticmethod
-    def send_error(client, error_number):
-        send(client, f"ERR~{error_number}")
-
-
-def send(soc, msg):
-    msg_len = str(len(msg)).zfill(HEADER).encode()
-    soc.send(msg_len + msg.encode())
-
-
-def receive(soc):
-    length = soc.recv(HEADER)
-    if length:
-        length = int(length)
-        return soc.recv(length).decode()
-    return ''
-
-
-def parse(msg):
-    cmd = msg.split(DELIMITER)[0]
-    params = msg.split(DELIMITER)[1:]
-    return cmd, params
+errors = {
+    '1': "Command was not found.",
+    '2': "Unit was not found.",
+    '3': "Index was not valid.",
+    '4': "Name has already been taken.",
+    '5': "User was not found."
+}
 
 
 def server_parse(msg, client):
     cmd, params = parse(msg)
     params.insert(0, client)
     try:
-        Server().commands()[cmd](params)
+        return Server().commands()[cmd](params)
     except KeyError:
+        if cmd == 'ERR':
+            return params[1]
+        elif cmd == 'DON':
+            return 0
         Server.send_error(client, 1)
+
+
+def client_parse(msg, client):
+    cmd, params = parse(msg)
+    params.insert(0, client)
+    try:
+        return Client().commands()[cmd](params)
+    except KeyError:
+        if cmd == 'ERR':
+            return params[1]
+        elif cmd == 'DON':
+            return 0
+        Client.send_error(client, 1)
 
 
 if __name__ == '__main__':

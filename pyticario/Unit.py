@@ -1,8 +1,8 @@
-import settings
-import sqlite3
-import random
 import math
-import os
+import random
+import sqlite3
+
+import settings
 
 
 class Unit(object):
@@ -95,16 +95,16 @@ class Unit(object):
             raise FileNotFoundError(f"The unit {unit_name} was not found on DB.")
         return Unit(tup)
 
-    @staticmethod
-    def unit_as_tuple(unit_name, table='units'):
-        conn = sqlite3.connect(settings.DB)
-        c = conn.cursor()
-        c.execute(f"SELECT * FROM {table} WHERE name='{unit_name}'")
-        tup = c.fetchone()
-        conn.close()
-        if not tup:
-            raise FileNotFoundError(f"The unit {unit_name} was not found on DB.")
-        return tup
+    # @staticmethod
+    # def unit_as_tuple(unit_name, table='units'):
+    #     conn = sqlite3.connect(settings.DB)
+    #     c = conn.cursor()
+    #     c.execute(f"SELECT * FROM {table} WHERE name='{unit_name}'")
+    #     tup = c.fetchone()
+    #     conn.close()
+    #     if not tup:
+    #         raise FileNotFoundError(f"The unit {unit_name} was not found on DB.")
+    #     return tup
 
 
 if __name__ == '__main__':
