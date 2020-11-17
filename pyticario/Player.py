@@ -81,8 +81,8 @@ class Player(object):
     def remove_unit_form_db(self, unit_id):
         conn = sqlite3.connect(settings.DB)
         try:
-            for i in range(unit_id+1, self.units):
-                self.update_unit(i-1, self.get_unit(i).as_tuple())
+            for i in range(unit_id + 1, self.units):
+                self.update_unit(i - 1, self.get_unit(i).as_tuple())
             conn.cursor().execute(f"DELETE FROM {self.name} WHERE rowid = (SELECT MAX(rowid) FROM {self.name})")
             conn.commit()
             self.units -= 1
@@ -117,7 +117,7 @@ class Player(object):
     def update_unit(self, id, tupl):
         conn = sqlite3.connect(settings.DB)
         text = f"UPDATE {self.name} SET "
-        for col, value in zip(unit_args ,tupl):
+        for col, value in zip(unit_args, tupl):
             if type(value) == str:
                 value = f'"{value}"'
             text += f"{col} = {value},"
@@ -126,8 +126,17 @@ class Player(object):
         conn.commit()
         conn.close()
 
+    def attack(self, unit_id, other, other_id, ranged=False, flank=False, charge=False, front=True, advantage=0):
+        unt = self.get_unit(unit_id)
+        otr = other.get_unit(other_id)
+        damage, casualties = unt.resolve(otr, ranged, flank, charge, front, advantage)
+        self.update_unit(unit_id, unt.as_tuple())
+        other.update_unit(other_id, otr.as_tuple())
+        return damage, casualties
+
 
 if __name__ == '__main__':
     a = Player("Itay", False)
+    b = Player("Test", False)
 
 

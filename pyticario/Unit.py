@@ -44,7 +44,8 @@ class Unit(object):
                 m *= (1 + self.charge / 100)
 
             return m
-
+        if ranged and self.ammunition == 0:
+            raise ValueError("No ammunition.")
         attack_skill = self.melee_attack if not ranged else self.ranged_attack
         ratio = min(1, attack_skill / other.defence)
         hits = math.ceil(ratio * self.men * random.uniform(0.75, 1.25))
