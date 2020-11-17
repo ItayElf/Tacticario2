@@ -109,10 +109,13 @@ class Player(object):
             conn.close()
             return [Unit.Unit(val) for val in lst]
         else:
-            c.execute(f"SELECT * FROM {self.name} WHERE rowid = {num}")
-            unt = Unit.Unit(c.fetchone())
-            conn.close()
-            return unt
+            try:
+                c.execute(f"SELECT * FROM {self.name} WHERE rowid = {num}")
+                unt = Unit.Unit(c.fetchone())
+                conn.close()
+                return unt
+            except sqlite3.OperationalError:
+                raise IndexError(f"Unit id {num} was not found.")
 
     def update_unit(self, id, tupl):
         conn = sqlite3.connect(settings.DB)
@@ -137,6 +140,8 @@ class Player(object):
 
 if __name__ == '__main__':
     a = Player("Itay", False)
-    b = Player("Test", False)
+
+
+
 
 
