@@ -13,7 +13,9 @@ class Server:
             "DLP": self.delete_player,
             "RPL": self.reset_player,
             "AUT": self.add_unit,
-            "RUT": self.remove_unit
+            "RUT": self.remove_unit,
+            "ATK": self.attack,
+            "IDR": self.is_dead_or_ran
         }
 
         return commands
@@ -48,7 +50,6 @@ class Server:
         for unt in all_units:
             msg = "GUT~" + '~'.join([str(val) for val in unt.as_tuple()])
             send(params[0], msg)
-
 
     @staticmethod
     def create_player(params):
@@ -96,6 +97,27 @@ class Server:
             send(params[0], 'DON')
         except FileNotFoundError:
             Server.send_error(params[0], 2)
+
+    @staticmethod
+    def attack(params):
+        p1 = Player.Player(params[1], False)
+        p2 = Player.Player(params[3], False)
+        ranged = bool(int(params[5]))
+        flank = bool(int(params[6]))
+        charge = bool(int(params[7]))
+        front = bool(int(params[8]))
+        advantage = float(params[9])
+        try:
+            d, c = p1.attack(int(params[2]), p2, int(params[4]), ranged, flank, charge, front, advantage)
+            send(params[0], f"GDC~{d}~{c}")
+        except IndexError:
+            Server.send_error(params[0], 3)
+
+    @staticmethod
+    def is_dead_or_ran(params):
+        a = Player.Player(params[1])
+        res = a.is_dead_or_ran(params[2])
+        send(params[0], f"GDR:{int(res)}")
 
     @staticmethod
     def send_error(client, error_number):

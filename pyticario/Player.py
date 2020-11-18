@@ -135,14 +135,14 @@ class Player(object):
             except sqlite3.OperationalError:
                 raise IndexError(f"Unit id {num} was not found.")
 
-    def update_unit(self, id, tupl):
+    def update_unit(self, uname_id, tupl):
         conn = sqlite3.connect(settings.DB)
         text = f"UPDATE {self.name} SET "
         for col, value in zip(unit_args, tupl):
             if type(value) == str:
                 value = f'"{value}"'
             text += f"{col} = {value},"
-        text = text[:-1] + f' WHERE rowid = {id}'
+        text = text[:-1] + f' WHERE rowid = {uname_id}'
         conn.cursor().execute(text)
         conn.commit()
         conn.close()
@@ -154,6 +154,15 @@ class Player(object):
         self.update_unit(unit_id, unt.as_tuple())
         other.update_unit(other_id, otr.as_tuple())
         return damage, casualties
+
+    def is_dead_or_ran(self, unit_id):
+        conn = sqlite3.connect(settings.DB)
+        c = conn.cursor()
+        c.execute(f"SELECT men, morale FROM {self.name} WHERE rowid = {unit_id}")
+        men, morale = c.fetchone()
+        if men > 0 and morale > 0:
+            return True
+        return False
 
 
 if __name__ == '__main__':

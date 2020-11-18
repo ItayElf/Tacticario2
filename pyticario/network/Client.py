@@ -7,7 +7,9 @@ class Client:
         commands = {
             "DON": self.done,
             "GUT": self.get_unit,
-            "GAU": self.get_all_units
+            "GAU": self.get_all_units,
+            "GDC": self.get_damage_and_casualties,
+            "GDR": self.get_dead_or_ran
         }
 
         return commands
@@ -29,9 +31,17 @@ class Client:
             while not cmd:
                 cmd, p = parse(receive(params[0]))
             all_units.append(Unit.Unit(p))
+        Client.done(params)
         return all_units
 
+    @staticmethod
+    def get_damage_and_casualties(params):
+        Client.done(params)
+        return [float(params[1]), int(params[2])]
 
+    @staticmethod
+    def get_dead_or_ran(params):
+        return bool(int(params[1]))
 
     @staticmethod
     def send_error(client, error_number):

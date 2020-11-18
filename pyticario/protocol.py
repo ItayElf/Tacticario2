@@ -20,9 +20,9 @@ def server_parse(msg, client):
         return Server().commands()[cmd](params)
     except KeyError:
         if cmd == 'ERR':
-            return params[1]
+            return f"ERR{params[1]}"
         elif cmd == 'DON':
-            return 0
+            return 'DON0'
         Server.send_error(client, 1)
     except IndexError:
         Server.send_error(client, 1)
