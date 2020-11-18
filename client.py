@@ -9,7 +9,7 @@ client.connect((IP, ptr.PORT))
 
 while True:
     name = input(">>> ")
-    send(client, f"SUT~units~{name}")
+    send(client, name)
     res = receive(client)
     x = ptr.client_parse(res, client)
     if x:

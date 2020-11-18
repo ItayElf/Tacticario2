@@ -24,6 +24,8 @@ def server_parse(msg, client):
         elif cmd == 'DON':
             return 0
         Server.send_error(client, 1)
+    except IndexError:
+        Server.send_error(client, 1)
 
 
 def client_parse(msg, client):
@@ -33,12 +35,13 @@ def client_parse(msg, client):
         return Client().commands()[cmd](params)
     except KeyError:
         if cmd == 'ERR':
-            return params[1]
+            return f"ERR{params[1]}"
         elif cmd == 'DON':
             return 0
+        Client.send_error(client, 1)
+    except IndexError:
         Client.send_error(client, 1)
 
 
 if __name__ == '__main__':
-    server_parse("SUT~units~Medium Spearman", 1)
-    server_parse("SUT~Itay~1", 1)
+    pass

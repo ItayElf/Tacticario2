@@ -53,18 +53,22 @@ class Player(object):
             c.execute(f"SELECT * FROM units WHERE name='{unit_name}'")
             tup = c.fetchone()
             if not tup:
+                conn.close()
                 raise FileNotFoundError(f"The unit {unit_name} was not found on DB.")
             return tup
 
         def insert_to_player_db(conn, vals):
-            text = f"INSERT INTO {self.name} VALUES ("
-            for value in vals:
-                if type(value) == str:
-                    value = f'"{value}"'
-                text += f"{value},"
-            text = text[:-1] + ')'
-            conn.cursor().execute(text)
-            conn.commit()
+            try:
+                text = f"INSERT INTO {self.name} VALUES ("
+                for value in vals:
+                    if type(value) == str:
+                        value = f'"{value}"'
+                    text += f"{value},"
+                text = text[:-1] + ')'
+                conn.cursor().execute(text)
+                conn.commit()
+            except sqlite3.OperationalError:
+                raise FileNotFoundError(f"Player {self.name} was not found.")
 
         self.units += 1
         conn = sqlite3.connect(settings.DB)
@@ -115,10 +119,13 @@ class Player(object):
         conn = sqlite3.connect(settings.DB)
         c = conn.cursor()
         if num < 0:
-            c.execute(f"SELECT * FROM {self.name}")
-            lst = list(c.fetchall())
-            conn.close()
-            return [Unit.Unit(val) for val in lst]
+            try:
+                c.execute(f"SELECT * FROM {self.name}")
+                lst = list(c.fetchall())
+                conn.close()
+                return [Unit.Unit(val) for val in lst]
+            except sqlite3.OperationalError:
+                raise FileNotFoundError(f"Player {self.name} was not found.")
         else:
             try:
                 c.execute(f"SELECT * FROM {self.name} WHERE rowid = {num}")
@@ -151,8 +158,3 @@ class Player(object):
 
 if __name__ == '__main__':
     a = Player("Itay", False)
-
-
-
-
-
