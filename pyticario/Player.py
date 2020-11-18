@@ -156,13 +156,24 @@ class Player(object):
         return damage, casualties
 
     def is_dead_or_ran(self, unit_id):
+
         conn = sqlite3.connect(settings.DB)
         c = conn.cursor()
-        c.execute(f"SELECT men, morale FROM {self.name} WHERE rowid = {unit_id}")
-        men, morale = c.fetchone()
-        if men > 0 and morale > 0:
-            return True
-        return False
+        try:
+            c.execute(f"SELECT men, morale FROM {self.name} WHERE rowid = {unit_id}")
+            men, morale = c.fetchone()
+            conn.close()
+            if men > 0 and morale > 0:
+                return True
+            return False
+        except sqlite3.OperationalError:
+            conn.close()
+            raise FileNotFoundError
+        except TypeError:
+            conn.close()
+            raise IndexError
+
+
 
 
 if __name__ == '__main__':

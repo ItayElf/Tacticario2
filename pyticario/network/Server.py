@@ -115,9 +115,14 @@ class Server:
 
     @staticmethod
     def is_dead_or_ran(params):
-        a = Player.Player(params[1])
-        res = a.is_dead_or_ran(params[2])
-        send(params[0], f"GDR:{int(res)}")
+        try:
+            a = Player.Player(params[1], False)
+            res = a.is_dead_or_ran(params[2])
+            send(params[0], f"GDR~{int(res)}")
+        except FileNotFoundError:
+            Server.send_error(params[0], 5)
+        except IndexError:
+            Server.send_error(params[0], 3)
 
     @staticmethod
     def send_error(client, error_number):
