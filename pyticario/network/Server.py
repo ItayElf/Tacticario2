@@ -1,12 +1,13 @@
 from pyticario import Player
 from pyticario import Unit
-from pyticario.network.common import send
+from pyticario.network.common import send, receive
 
 
 class Server:
 
     def commands(self):
         commands = {
+            "DIS": self.disconnect,
             "SUT": self.send_unit,
             "SAU": self.send_all_units,
             "CRP": self.create_player,
@@ -15,10 +16,17 @@ class Server:
             "AUT": self.add_unit,
             "RUT": self.remove_unit,
             "ATK": self.attack,
-            "IDR": self.is_dead_or_ran
+            "IDR": self.is_dead_or_ran,
+            "IPV": self.is_password_valid
         }
 
         return commands
+
+    @staticmethod
+    def disconnect(params):
+        send(params[0], "DON")
+        params[0].close()
+
 
     @staticmethod
     def send_unit(params):
@@ -54,7 +62,7 @@ class Server:
     @staticmethod
     def create_player(params):
         try:
-            Player.Player(params[1])
+            Player.Player(params[1], True, params[2])
             send(params[0], "DON")
         except FileExistsError:
             Server.send_error(params[0], 4)
@@ -118,11 +126,15 @@ class Server:
         try:
             a = Player.Player(params[1], False)
             res = a.is_dead_or_ran(params[2])
-            send(params[0], f"GDR~{int(res)}")
+            send(params[0], f"GTF~{int(res)}")
         except FileNotFoundError:
             Server.send_error(params[0], 5)
         except IndexError:
             Server.send_error(params[0], 3)
+
+    @staticmethod
+    def is_password_valid(params):
+        send(params[0], f"GTF~{int(Player.Player.check_password(params[1], params[2]))}")
 
     @staticmethod
     def send_error(client, error_number):

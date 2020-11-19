@@ -9,7 +9,7 @@ class Client:
             "GUT": self.get_unit,
             "GAU": self.get_all_units,
             "GDC": self.get_damage_and_casualties,
-            "GDR": self.get_dead_or_ran
+            "GTF": self.get_true_or_false
         }
 
         return commands
@@ -40,7 +40,7 @@ class Client:
         return [float(params[1]), int(params[2])]
 
     @staticmethod
-    def get_dead_or_ran(params):
+    def get_true_or_false(params):
         return bool(int(params[1]))
 
     @staticmethod

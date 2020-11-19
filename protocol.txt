@@ -7,18 +7,21 @@ get all units - GAU:
     {HEADER}GAU~NUMBER_OF_UNITS_SENT
 get damage and casualties - GDC:
     {HEADER}GDC~DAMAGE~CASUALTIES
-get dead or ran - GDR:
-    {HEADER}GDR~ANS(1/0)
+get true or false - GTF:
+    {HEADER}GTF~ANS(1/0)
 
 
 CLIENT SEND:
 
+
+dissconnect - DIS:
+    {HEADER}-DIS
 send unit - SUT:
     {HEADER}SUT~TABLE~NAME/ID
 send all units - SAU:
     {HEADER}SAU~NAME
 create player - CRP:
-    {HEADER}CRP~NAME
+    {HEADER}CRP~NAME~PASSWORD
 delete player - DLP:
     {HEADER}DLP~NAME
 reset player - RSP:
@@ -31,6 +34,8 @@ attack - ATK:
     {HEADER}ATK~ATTAKCER~ATTACKERUNIT~DEFENDER~DEFENDERUNIT~RANGED(0/1)~FLANK(0/1)~CHARGE(0/1)~FRONT(0/1)~ADVANTAGE
 is dead or ran - IDR:
     {HEADER}IDR~NAME~ID
+is password valid - IPV:
+    {HEADER}IPV~NAME~PASSWORD
 
 ERRORS:
 done - DON:

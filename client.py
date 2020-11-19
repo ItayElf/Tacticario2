@@ -10,6 +10,8 @@ client.connect((IP, ptr.PORT))
 while True:
     name = input(">>> ")
     send(client, name)
+    if name == "DIS":
+        break
     res = receive(client)
     x = ptr.client_parse(res, client)
     if x:

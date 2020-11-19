@@ -13,10 +13,12 @@ unit_args_types = ['text', 'text', 'text', 'text', 'text', 'integer', 'integer',
 
 
 class Player(object):
-    def __init__(self, name, new=True):
+    def __init__(self, name, new=True, password=None):
         self.name = name
         self.units = 0
         if new:
+            if not password:
+                raise TypeError("Password must be supplied to new players.")
             conn = sqlite3.connect(settings.DB)
             try:
                 text = f"CREATE TABLE {name} ("
@@ -29,7 +31,7 @@ class Player(object):
                 conn.close()
                 raise FileExistsError(f"The name {name} has already been taken.")
 
-            conn.cursor().execute(f"INSERT INTO players VALUES ('{name}')")
+            conn.cursor().execute(f"INSERT INTO players VALUES ('{name}', '{password}')")
             conn.commit()
             conn.close()
 
@@ -173,7 +175,14 @@ class Player(object):
             conn.close()
             raise IndexError
 
-
+    @staticmethod
+    def check_password(name, password):
+        conn = sqlite3.connect(settings.DB)
+        c = conn.cursor()
+        c.execute(f"SELECT * FROM players WHERE name='{name}' AND password='{password}'")
+        if c.fetchall():
+            return True
+        return False
 
 
 if __name__ == '__main__':
