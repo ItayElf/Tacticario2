@@ -12,13 +12,13 @@ unit_args_types = ['text', 'text', 'text', 'text', 'text', 'integer', 'integer',
                    'integer', 'integer', 'integer', 'integer', 'integer', 'text']
 
 
-class Player(object):
+class Player:
     def __init__(self, name, new=True, password=None):
         self.name = name
-        self.units = 0
         if new:
             if not password:
                 raise TypeError("Password must be supplied to new players.")
+            self.units = 0
             conn = sqlite3.connect(settings.DB)
             try:
                 text = f"CREATE TABLE {name} ("
@@ -34,6 +34,8 @@ class Player(object):
             conn.cursor().execute(f"INSERT INTO players VALUES ('{name}', '{password}')")
             conn.commit()
             conn.close()
+        else:
+            self.units = len(self.get_unit(-1))
 
     def delete_player(self):
         try:

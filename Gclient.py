@@ -2,9 +2,11 @@ from pyticario import protocol as ptr
 from pyticario.network.common import receive, send
 import tkinter as tk
 from tkinter import *
+from tkinter import messagebox
 import ctypes
 import socket
 
+NAME = ''
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
@@ -28,6 +30,7 @@ def setup():
     root = tk.Tk()
     root.title = "Tacticario2"
     root.geometry(f"{convert(1920)}x{convert(1080)}")
+    root.protocol("WM_DELETE_WINDOW", lambda x=root: on_closing(x))
 
     return root
 
@@ -45,6 +48,16 @@ def reset(r):
     widget_list = all_children(r)
     for item in widget_list:
         item.grid_forget()
+
+
+def on_closing(r):
+    global client
+    try:
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            client_send(client, "DIS")
+    except OSError:
+        pass
+    r.destroy()
 
 
 def start(r):
@@ -74,7 +87,7 @@ def login(r):
         return start(r)
 
     def on_press():
-        global client
+        global client, NAME
         try:
             client = socket.socket()
             client.settimeout(3)
@@ -95,7 +108,8 @@ def login(r):
             print("Incorrect username or password.")
             client_send(client, "DIS")
             return login(r)
-        print("Logged in.")
+        NAME = name.get()
+        return home(r)
 
     reset(r)
     font_size = 60
@@ -125,6 +139,35 @@ def login(r):
     button.config(font=font(font_size))
     button.grid(row=3, column=1)
     button = Button(r, text="BACK", command=go_back)
+    button.config(font=font(font_size // 2))
+    button.grid(row=2, column=1)
+
+
+def home(r):
+    def host_room():
+        pass
+
+    def join_room():
+        pass
+
+    reset(r)
+    font_size = 60
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text=f"Welcome, {NAME}!")
+    l.config(font=font(int(font_size * 1.5)))
+    l.grid(row=0, column=0, columnspan=3)
+    l = Label(f, text=f"What would you like to do?")
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=1, column=0, columnspan=3)
+
+    button = Button(f, text="Host Room", command=host_room)
+    button.config(font=font(int(font_size // 1.5)))
+    button.grid(row=2, column=0)
+    button = Button(f, text="Join Room", command=join_room)
+    button.config(font=font(int(font_size // 1.5)))
+    button.grid(row=2, column=2)
+    button = Button(r, text="QUIT", command=lambda x=r: on_closing(x))
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
 

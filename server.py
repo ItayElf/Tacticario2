@@ -9,7 +9,6 @@ server.bind((IP, ptr.PORT))
 server.listen()
 
 
-
 def handle_client(client, addr):
     try:
         res = receive(client)
