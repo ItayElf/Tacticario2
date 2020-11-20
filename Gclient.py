@@ -1,8 +1,9 @@
 from pyticario import protocol as ptr
 from pyticario.network.common import receive, send
+from functools import partial
 import tkinter as tk
 from tkinter import *
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 import ctypes
 import socket
 
@@ -12,6 +13,28 @@ ROOM = ''
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
+
+
+class ScrollableFrame(ttk.Frame):
+    def __init__(self, container, **kwargs):
+        super().__init__(container, **kwargs)
+        self.canvas = tk.Canvas(self)
+        self.scrollbar = Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = tk.Frame(self.canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
 
 
 def client_send(soc, msg):
@@ -102,6 +125,9 @@ def login(r):
             print("IP is not valid.")
             return login(r)
         except TimeoutError:
+            print("Server seems to be shut down.")
+            return login(r)
+        except socket.timeout:
             print("Server seems to be shut down.")
             return login(r)
         except ConnectionRefusedError:
@@ -214,7 +240,7 @@ def home(r):
         return host_room(r)
 
     def join():
-        pass
+        return join_room(r)
 
     reset(r)
     font_size = 60
@@ -273,6 +299,56 @@ def host_room(r):
     button = Button(r, text="BACK", command=go_back)
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
+
+
+def join_room(r):
+    def go_back():
+        return home(r)
+
+    def set_text(txt, _b):
+        name.delete(0, END)
+        name.insert(0, txt)
+
+    def join():
+        global ROOM
+        ans = client_send(client, f"APR~{name.get()}")
+        if ans == "ERR8":
+            print("Room is full")
+        elif ans == "ERR7":
+            print("room not found")
+        else:
+            ROOM = name.get()
+            print(f"{NAME} is in room {ROOM}")
+
+    reset(r)
+    font_size = 60
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text="Join Room")
+    l.config(font=font(font_size))
+    l.grid(row=0, columnspan=3)
+    l = Label(f, text="Room Name: ")
+    l.config(font=font(font_size))
+    l.grid(row=1)
+    name = Entry(f)
+    name.config(font=font(font_size))
+    name.grid(row=1, column=1)
+    button = Button(f, text="Join", command=join)
+    button.config(font=font(int(font_size // 1.5)))
+    button.grid(row=1, column=3)
+    button = Button(r, text="BACK", command=go_back)
+    button.config(font=font(font_size // 2))
+    button.grid(row=2, column=1)
+    scroll_frame = ScrollableFrame(f)
+    scroll_frame.scrollable_frame.config(bg="white", width=800, height=500)
+    scroll_frame.canvas.config(bg="white", width=800, height=500)
+    scroll_frame.grid(row=2, column=1)
+    active_rooms = client_send(client, "SAR")
+    for i, text in enumerate(active_rooms):
+        l = Label(scroll_frame.scrollable_frame, text=text)
+        l.config(font=font(int(font_size // 1.5)), bg="white")
+        l.bind("<Button-1>", partial(set_text, text))
+        l.grid(row=i, sticky="ew")
 
 
 if __name__ == '__main__':
