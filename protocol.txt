@@ -39,13 +39,15 @@ is dead or ran - IDR:
 is password valid - IPV:
     {HEADER}IPV~NAME~PASSWORD
 create room - CRR:
-    {HEADER}CRR~NAME
+    {HEADER}CRR~NAME~POINTS
 add player to room - APR:
     {HEADER}APR~ROOM
 remove player from room - RPR:
     {HEADER}RPR~ROOM
 send active rooms - SAR:
     {HEADER}SAR
+send active rooms points - SRP:
+    {HEADER}SRP
 
 ERRORS:
 done - DON:

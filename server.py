@@ -18,7 +18,8 @@ def handle_client(client, _addr):
             x = ptr.server_parse(receive(client), client)
             if x:
                 print(x)
-        except OSError:
+        except OSError as e:
+            print(e)
             quit()
 
 

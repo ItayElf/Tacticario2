@@ -24,7 +24,8 @@ class Server:
             "CRR": self.create_room,
             "APR": self.add_player_to_room,
             "RPR": self.remove_player_from_room,
-            'SAR': self.send_active_rooms
+            'SAR': self.send_active_rooms,
+            "SRP": self.send_active_rooms_points
         }
 
         return commands
@@ -210,7 +211,7 @@ class Server:
             pass
         using_db = True
         try:
-            Room.Room(params[1])
+            Room.Room(params[1], True, params[2])
             using_db = False
             send(params[0], "DON")
         except FileExistsError:
@@ -224,7 +225,7 @@ class Server:
             pass
         using_db = True
         try:
-            a = Room.Room(params[1])
+            a = Room.Room(params[1], False)
             a.add_player()
             using_db = False
             send(params[0], 'DON')
@@ -242,7 +243,7 @@ class Server:
             pass
         using_db = True
         try:
-            a = Room.Room(params[1])
+            a = Room.Room(params[1], False)
             a.remove_player()
             using_db = False
             send(params[0], 'DON')
@@ -257,6 +258,18 @@ class Server:
             pass
         using_db = True
         a = Room.Room.get_active_rooms()
+        using_db = False
+        send(params[0], f"GAR~{len(a)}")
+        for i in range(len(a)):
+            send(params[0], f"{a[i]}")
+
+    @staticmethod
+    def send_active_rooms_points(params):
+        global using_db
+        while using_db:
+            pass
+        using_db = True
+        a = Room.Room.get_active_rooms_points()
         using_db = False
         send(params[0], f"GAR~{len(a)}")
         for i in range(len(a)):

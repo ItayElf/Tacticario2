@@ -3,7 +3,7 @@ import settings
 
 
 class Room:
-    def __init__(self, name, new=True):
+    def __init__(self, name, new=True, points=-1):
         self.name = name
         if new:
             conn = sqlite3.connect(settings.DB)
@@ -12,7 +12,7 @@ class Room:
             if c.fetchone():
                 conn.close()
                 raise FileExistsError(f"The name {self.name} has already been taken.")
-            c.execute(f"INSERT INTO rooms VALUES ('{self.name}', 1)")
+            c.execute(f"INSERT INTO rooms VALUES ('{self.name}', 1, {points})")
             conn.commit()
             conn.close()
 
@@ -37,7 +37,7 @@ class Room:
         if not x:
             conn.close()
             raise FileNotFoundError(f"Room {self.name} was not found.")
-        elif x == 2:
+        elif x[0] == 2:
             c.execute(f"UPDATE rooms SET players=1 WHERE name='{self.name}'")
             conn.commit()
             conn.close()
@@ -54,7 +54,7 @@ class Room:
         if not x:
             conn.close()
             raise FileNotFoundError(f"Room {self.name} was not found.")
-        elif x == 1:
+        elif x[0] == 1:
             c.execute(f"UPDATE rooms SET players=2 WHERE name='{self.name}'")
             conn.commit()
             conn.close()
@@ -66,6 +66,15 @@ class Room:
         conn = sqlite3.connect(settings.DB)
         c = conn.cursor()
         c.execute(f"SELECT name FROM rooms WHERE players=1")
+        x = c.fetchall()
+        conn.close()
+        return [val[0] for val in x]
+
+    @staticmethod
+    def get_active_rooms_points():
+        conn = sqlite3.connect(settings.DB)
+        c = conn.cursor()
+        c.execute(f"SELECT points FROM rooms WHERE players=1")
         x = c.fetchall()
         conn.close()
         return [val[0] for val in x]

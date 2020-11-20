@@ -273,7 +273,10 @@ def host_room(r):
         if '~' in name.get():
             print("Invalid name.")
             return host_room(r)
-        ans = client_send(client, f"CRR~{name.get()}")
+        if not(points.get().isdigit() or points.get() == '-1'):
+            print("Invalid points")
+            return host_room(r)
+        ans = client_send(client, f"CRR~{name.get()}~{points.get()}")
         if ans == 'ERR6':
             print("This name is being used by another room")
             return host_room(r)
@@ -290,9 +293,15 @@ def host_room(r):
     l = Label(f, text="Room Name: ")
     l.config(font=font(font_size))
     l.grid(row=1)
+    l = Label(f, text="Points: ")
+    l.config(font=font(font_size))
+    l.grid(row=2)
     name = Entry(f)
     name.config(font=font(font_size))
     name.grid(row=1, column=1, columnspan=2)
+    points = Entry(f)
+    points.config(font=font(font_size))
+    points.grid(row=2, column=1, columnspan=2)
     button = Button(f, text="Host Room", command=on_press)
     button.config(font=font(font_size))
     button.grid(row=3, column=1)
@@ -344,8 +353,10 @@ def join_room(r):
     scroll_frame.canvas.config(bg="white", width=800, height=500)
     scroll_frame.grid(row=2, column=1)
     active_rooms = client_send(client, "SAR")
+    active_points = client_send(client, 'SRP')
     for i, text in enumerate(active_rooms):
-        l = Label(scroll_frame.scrollable_frame, text=text)
+        point = f" - {active_points[i]} points." if int(active_points[i]) > 0 else " - No limit."
+        l = Label(scroll_frame.scrollable_frame, text=(text + point), anchor='w')
         l.config(font=font(int(font_size // 1.5)), bg="white")
         l.bind("<Button-1>", partial(set_text, text))
         l.grid(row=i, sticky="ew")
