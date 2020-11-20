@@ -65,7 +65,7 @@ def start(r):
         return login(r)
 
     def goto_register():
-        pass
+        return register(r)
 
     reset(r)
     font_size = 60
@@ -136,6 +136,66 @@ def login(r):
     password.grid(row=2, column=1, columnspan=2)
 
     button = Button(f, text="Log In", command=on_press)
+    button.config(font=font(font_size))
+    button.grid(row=3, column=1)
+    button = Button(r, text="BACK", command=go_back)
+    button.config(font=font(font_size // 2))
+    button.grid(row=2, column=1)
+
+
+def register(r):
+    def go_back():
+        return start(r)
+
+    def on_press():
+        global client, NAME
+        try:
+            client = socket.socket()
+            client.settimeout(3)
+            client.connect((ip.get(), ptr.PORT))
+            client.settimeout(None)
+        except socket.gaierror:
+            print("IP is not valid.")
+            return register(r)
+        except TimeoutError:
+            print("Server seems to be shut down.")
+            return register(r)
+        except ConnectionRefusedError:
+            print("Server seems to be shut down.")
+            return register(r)
+
+        ans = client_send(client, f"CRP~{name.get()}~{password.get()}")
+        if ans == 'ERR4':
+            print("Name has already been taken.")
+            client_send(client, "DIS")
+            return register(r)
+        NAME = name.get()
+        return home(r)
+
+    reset(r)
+    font_size = 60
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text="IP: ")
+    l.config(font=font(font_size))
+    l.grid(row=0)
+    l = Label(f, text="NAME: ")
+    l.config(font=font(font_size))
+    l.grid(row=1)
+    l = Label(f, text="PASSWORD: ")
+    l.config(font=font(font_size))
+    l.grid(row=2)
+    ip = Entry(f)
+    ip.config(font=font(font_size))
+    ip.grid(row=0, column=1, columnspan=2)
+    name = Entry(f)
+    name.config(font=font(font_size))
+    name.grid(row=1, column=1, columnspan=2)
+    password = Entry(f)
+    password.config(font=font(font_size))
+    password.grid(row=2, column=1, columnspan=2)
+
+    button = Button(f, text="Register", command=on_press)
     button.config(font=font(font_size))
     button.grid(row=3, column=1)
     button = Button(r, text="BACK", command=go_back)
