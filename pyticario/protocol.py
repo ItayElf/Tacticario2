@@ -4,14 +4,6 @@ from pyticario.network.common import parse
 
 PORT = 1664
 
-errors = {
-    '1': "Command was not found.",
-    '2': "Unit was not found.",
-    '3': "Index was not valid.",
-    '4': "Name has already been taken.",
-    '5': "User was not found."
-}
-
 
 def server_parse(msg, client):
     cmd, params = parse(msg)

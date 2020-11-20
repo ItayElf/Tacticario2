@@ -9,7 +9,8 @@ class Client:
             "GUT": self.get_unit,
             "GAU": self.get_all_units,
             "GDC": self.get_damage_and_casualties,
-            "GTF": self.get_true_or_false
+            "GTF": self.get_true_or_false,
+            "GAR": self.get_active_rooms,
         }
 
         return commands
@@ -42,6 +43,14 @@ class Client:
     @staticmethod
     def get_true_or_false(params):
         return bool(int(params[1]))
+
+    @staticmethod
+    def get_active_rooms(params):
+        active_rooms = []
+        for i in range(int(params[1])):
+            active_rooms.append(receive(params[0]))
+        Client.done(params)
+        return active_rooms
 
     @staticmethod
     def send_error(client, error_number):

@@ -10,15 +10,16 @@ server.listen()
 
 
 def handle_client(client, addr):
-    try:
-        res = receive(client)
-        print(res)
-        ptr.server_parse(res, client)
-        x = ptr.server_parse(receive(client), client)
-        if x:
-            print(x)
-    except OSError:
-        quit()
+    while True:
+        try:
+            res = receive(client)
+            print(res)
+            ptr.server_parse(res, client)
+            x = ptr.server_parse(receive(client), client)
+            if x:
+                print(x)
+        except OSError:
+            quit()
 
 
 while True:

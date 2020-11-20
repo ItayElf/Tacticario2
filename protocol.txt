@@ -9,6 +9,8 @@ get damage and casualties - GDC:
     {HEADER}GDC~DAMAGE~CASUALTIES
 get true or false - GTF:
     {HEADER}GTF~ANS(1/0)
+get active rooms - GAR:
+    {HEADER}GAR~NUMBER_OF_ROOMS
 
 
 CLIENT SEND:
@@ -36,6 +38,14 @@ is dead or ran - IDR:
     {HEADER}IDR~NAME~ID
 is password valid - IPV:
     {HEADER}IPV~NAME~PASSWORD
+create room - CRR:
+    {HEADER}CRR~NAME
+add player to room - APR:
+    {HEADER}APR~ROOM
+remove player from room - RPR:
+    {HEADER}RPR~ROOM
+send active rooms - SAR:
+    {HEADER}SAR
 
 ERRORS:
 done - DON:
@@ -47,11 +57,16 @@ unit not found - ERR2:
     {HEADER}ERR~2
 incorrect index - ERR3
     {HEADER}ERR~3
-user already exist - ERR4
+user already exists - ERR4
     {HEADER}ERR~4
 user not found - ERR5:
     {HEADER}ERR~5
-
+room already exists - ERR6
+    {HEADER}ERR~6
+room not found - ERR7
+    {HEADER}ERR~7
+room is full - ERR8
+    {HEADER}ERR~8
 
 
 

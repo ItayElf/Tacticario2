@@ -6,16 +6,21 @@ from tkinter import messagebox
 import ctypes
 import socket
 
+IP = ''
 NAME = ''
+ROOM = ''
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
 
 
 def client_send(soc, msg):
-    send(soc, msg)
-    res = receive(client)
-    return ptr.client_parse(res, client)
+    try:
+        send(soc, msg)
+        res = receive(client)
+        return ptr.client_parse(res, client)
+    except ConnectionRefusedError:
+        print("Server seems to be shut down.")
 
 
 def convert(font):
@@ -87,7 +92,7 @@ def login(r):
         return start(r)
 
     def on_press():
-        global client, NAME
+        global client, NAME, IP
         try:
             client = socket.socket()
             client.settimeout(3)
@@ -103,6 +108,7 @@ def login(r):
             print("Server seems to be shut down.")
             return login(r)
 
+        IP = ip.get()
         ans = client_send(client, f"IPV~{name.get()}~{password.get()}")
         if not ans:
             print("Incorrect username or password.")
@@ -204,10 +210,10 @@ def register(r):
 
 
 def home(r):
-    def host_room():
-        pass
+    def host():
+        return host_room(r)
 
-    def join_room():
+    def join():
         pass
 
     reset(r)
@@ -221,13 +227,50 @@ def home(r):
     l.config(font=font(int(font_size // 1.5)))
     l.grid(row=1, column=0, columnspan=3)
 
-    button = Button(f, text="Host Room", command=host_room)
+    button = Button(f, text="Host Room", command=host)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=2, column=0)
-    button = Button(f, text="Join Room", command=join_room)
+    button = Button(f, text="Join Room", command=join)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=2, column=2)
     button = Button(r, text="QUIT", command=lambda x=r: on_closing(x))
+    button.config(font=font(font_size // 2))
+    button.grid(row=2, column=1)
+
+
+def host_room(r):
+    def go_back():
+        return home(r)
+
+    def on_press():
+        global ROOM
+        if '~' in name.get():
+            print("Invalid name.")
+            return host_room(r)
+        ans = client_send(client, f"CRR~{name.get()}")
+        if ans == 'ERR6':
+            print("This name is being used by another room")
+            return host_room(r)
+        ROOM = name.get()
+        print(f"{NAME} is in room {ROOM}")
+
+    reset(r)
+    font_size = 60
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text="Host Room")
+    l.config(font=font(font_size))
+    l.grid(row=0, columnspan=3)
+    l = Label(f, text="Room Name: ")
+    l.config(font=font(font_size))
+    l.grid(row=1)
+    name = Entry(f)
+    name.config(font=font(font_size))
+    name.grid(row=1, column=1, columnspan=2)
+    button = Button(f, text="Host Room", command=on_press)
+    button.config(font=font(font_size))
+    button.grid(row=3, column=1)
+    button = Button(r, text="BACK", command=go_back)
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
 

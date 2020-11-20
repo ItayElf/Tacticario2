@@ -1,5 +1,6 @@
 from pyticario import Player
 from pyticario import Unit
+from pyticario import Room
 from pyticario.network.common import send, receive
 
 using_db = False
@@ -19,7 +20,11 @@ class Server:
             "RUT": self.remove_unit,
             "ATK": self.attack,
             "IDR": self.is_dead_or_ran,
-            "IPV": self.is_password_valid
+            "IPV": self.is_password_valid,
+            "CRR": self.create_room,
+            "APR": self.add_player_to_room,
+            "RPR": self.remove_player_from_room,
+            'SAR': self.send_active_rooms
         }
 
         return commands
@@ -197,6 +202,65 @@ class Server:
         using_db = True
         send(params[0], f"GTF~{int(Player.Player.check_password(params[1], params[2]))}")
         using_db = False
+
+    @staticmethod
+    def create_room(params):
+        global using_db
+        while using_db:
+            pass
+        using_db = True
+        try:
+            Room.Room(params[1])
+            using_db = False
+            send(params[0], "DON")
+        except FileExistsError:
+            using_db = False
+            Server.send_error(params[0], 6)
+
+    @staticmethod
+    def add_player_to_room(params):
+        global using_db
+        while using_db:
+            pass
+        using_db = True
+        try:
+            a = Room.Room(params[1])
+            a.add_player()
+            using_db = False
+            send(params[0], 'DON')
+        except FileNotFoundError:
+            using_db = False
+            Server.send_error(params[0], 7)
+        except IndexError:
+            using_db = False
+            Server.send_error(params[0], 8)
+
+    @staticmethod
+    def remove_player_from_room(params):
+        global using_db
+        while using_db:
+            pass
+        using_db = True
+        try:
+            a = Room.Room(params[1])
+            a.remove_player()
+            using_db = False
+            send(params[0], 'DON')
+        except FileNotFoundError:
+            using_db = False
+            Server.send_error(params[0], 7)
+
+    @staticmethod
+    def send_active_rooms(params):
+        global using_db
+        while using_db:
+            pass
+        using_db = True
+        a = Room.Room.get_active_rooms()
+        using_db = False
+        send(params[0], f"GAR~{len(a)}")
+        for i in range(len(a)):
+            send(params[0], f"{a[i]}")
 
     @staticmethod
     def send_error(client, error_number):
