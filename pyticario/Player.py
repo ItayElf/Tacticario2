@@ -96,12 +96,16 @@ class Player:
     def remove_unit_form_db(self, unit_id):
         conn = sqlite3.connect(settings.DB)
         try:
-            for i in range(unit_id + 1, self.units):
-                self.update_unit(i - 1, self.get_unit(i).as_tuple())
-            conn.cursor().execute(f"DELETE FROM {self.name} WHERE rowid = (SELECT MAX(rowid) FROM {self.name})")
+            x = self.get_unit(-1)
+            self.reset_db()
+            x.remove(x[unit_id-1])
+            for unit in x:
+                self.add_unit_by_tuple(unit.as_tuple())
             conn.commit()
             self.units -= 1
         except sqlite3.OperationalError:
+            raise FileNotFoundError(f"Unit number {unit_id} was not found on {self.name}'s DB.")
+        except IndexError:
             raise FileNotFoundError(f"Unit number {unit_id} was not found on {self.name}'s DB.")
 
     def reset_db(self):
@@ -145,8 +149,9 @@ class Player:
         for col, value in zip(unit_args, tupl):
             if type(value) == str:
                 value = f'"{value}"'
-            text += f"{col} = {value},"
-        text = text[:-1] + f' WHERE rowid = {uname_id}'
+            text += f"{col}={value}, "
+        text = text[:-2] + f'WHERE rowid = {uname_id}'
+        print(text)
         conn.cursor().execute(text)
         conn.commit()
         conn.close()

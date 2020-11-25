@@ -15,7 +15,7 @@ class Server:
             "SAU": self.send_all_units,
             "CRP": self.create_player,
             "DLP": self.delete_player,
-            "RPL": self.reset_player,
+            "RSP": self.reset_player,
             "AUT": self.add_unit,
             "RUT": self.remove_unit,
             "ATK": self.attack,
@@ -149,7 +149,7 @@ class Server:
         using_db = True
         try:
             a = Player.Player(params[1], False)
-            a.remove_unit_form_db(params[2])
+            a.remove_unit_form_db(int(params[2]))
             send(params[0], 'DON')
             using_db = False
         except FileNotFoundError:

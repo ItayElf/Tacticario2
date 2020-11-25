@@ -4,7 +4,7 @@ from pyticario.network.common import receive
 from pyticario import protocol as ptr
 
 server = socket.socket()
-IP = socket.gethostbyname(socket.gethostname())
+IP = "0.0.0.0"
 server.bind((IP, ptr.PORT))
 server.listen()
 

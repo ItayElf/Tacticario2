@@ -22,12 +22,7 @@ class ScrollableFrame(ttk.Frame):
         self.scrollbar = Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = tk.Frame(self.canvas)
 
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(
-                scrollregion=self.canvas.bbox("all")
-            )
-        )
+        self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
 
@@ -56,7 +51,7 @@ def font(size):
 
 def setup():
     root = tk.Tk()
-    root.title = "Tacticario2"
+    root.title("Tacticario2")
     root.geometry(f"{convert(1920)}x{convert(1080)}")
     root.protocol("WM_DELETE_WINDOW", lambda x=root: on_closing(x))
 
@@ -81,11 +76,12 @@ def reset(r):
 def on_closing(r):
     global client
     try:
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        res = messagebox.askquestion("Quit", "Do you want to quit?")
+        if res == "yes":
             client_send(client, "DIS")
+            root.destroy()
     except OSError:
-        pass
-    r.destroy()
+        root.destroy()
 
 
 def start(r):
@@ -273,7 +269,7 @@ def host_room(r):
         if '~' in name.get():
             print("Invalid name.")
             return host_room(r)
-        if not(points.get().isdigit() or points.get() == '-1'):
+        if not (points.get().isdigit() or points.get() == '-1'):
             print("Invalid points")
             return host_room(r)
         ans = client_send(client, f"CRR~{name.get()}~{points.get()}")
@@ -281,7 +277,7 @@ def host_room(r):
             print("This name is being used by another room")
             return host_room(r)
         ROOM = name.get()
-        print(f"{NAME} is in room {ROOM}")
+        room_recruit(r)
 
     reset(r)
     font_size = 60
@@ -327,7 +323,7 @@ def join_room(r):
             print("room not found")
         else:
             ROOM = name.get()
-            print(f"{NAME} is in room {ROOM}")
+            room_recruit(r)
 
     reset(r)
     font_size = 60
@@ -349,8 +345,8 @@ def join_room(r):
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
     scroll_frame = ScrollableFrame(f)
-    scroll_frame.scrollable_frame.config(bg="white", width=800, height=500)
-    scroll_frame.canvas.config(bg="white", width=800, height=500)
+    scroll_frame.scrollable_frame.config(bg="white", width=convert(800), height=(500))
+    scroll_frame.canvas.config(bg="white", width=convert(800), height=(500))
     scroll_frame.grid(row=2, column=1)
     active_rooms = client_send(client, "SAR")
     active_points = client_send(client, 'SRP')
@@ -360,6 +356,94 @@ def join_room(r):
         l.config(font=font(int(font_size // 1.5)), bg="white")
         l.bind("<Button-1>", partial(set_text, text))
         l.grid(row=i, sticky="ew")
+
+
+def room_recruit(r):
+    def go_back():
+        return home(r)
+
+    def popup_unit(index):
+        unitvar = all_units[index]
+        fr = Toplevel()
+        fr.title(unitvar.name)
+        new_size = 15
+        # fr = Frame(top)
+        # fr.place(relx=0.5, rely=0.5, anchor='center')
+        l = Label(fr, text=unitvar.name)
+        l.config(font=font(new_size * 2))
+        l.grid(row=0, column=0, columnspan=2)
+        args = [var.replace('_', ' ').title() for var in
+                ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
+                 'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
+                 'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
+        unitup = list(unitvar.as_tuple())[1:]
+        unitup[1] = unitup[1].replace('.', '.\n')
+        args.remove(args[0])
+        for i, (cat, val) in enumerate(zip(args, unitup)):
+            if val == '-1':
+                continue
+            l = Label(fr, text=f"{cat}:")
+            l.config(font=font(new_size))
+            l.grid(row=i + 1, column=0, sticky='ew')
+            l = Label(fr, text=f"{val}")
+            l.config(font=font(new_size))
+            l.grid(row=i + 1, column=1, sticky='ew')
+        fr.resizable(False, False)
+
+    def remove_unit(unitnum):
+        ans = client_send(client, f"RUT~{NAME}~{unitnum}")
+        if ans and "ERR" in ans:
+            print(ans)
+        return room_recruit(r)
+
+    reset(r)
+    font_size = 60
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text=f"{ROOM}")
+    l.config(font=font(int(font_size * 1.5)))
+    l.grid(row=0, column=0, columnspan=3)
+    all_units = client_send(client, f"SAU~{NAME}")
+    scroll = ScrollableFrame(f)
+    scroll.canvas.config(width=convert(850), height=convert(700))
+    scroll.grid(row=2, column=0, columnspan=3, sticky='ew')
+    l = Label(scroll.scrollable_frame, text="Remove")
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=0, column=0, sticky="ew")
+    l = Label(scroll.scrollable_frame, text="ID")
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=0, column=1, sticky="ew")
+    l = Label(scroll.scrollable_frame, text="Name")
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=0, column=2, sticky="ew")
+    l = Label(scroll.scrollable_frame, text="Cost")
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=0, column=3, sticky="ew")
+    l = Label(scroll.scrollable_frame, text="-" * 50)
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=1, column=0, columnspan=4)
+    for i, unt in enumerate(all_units):
+        button = Button(scroll.scrollable_frame, text="Remove", command=partial(remove_unit, i + 1))
+        button.config(font=font(int(font_size // 2)))
+        button.grid(row=i + 2, column=0, sticky='ew')
+        l = Label(scroll.scrollable_frame, text=i + 1)
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=i + 2, column=1)
+        b = Button(scroll.scrollable_frame, text=unt.name, command=partial(popup_unit, i))
+        b.config(font=font(int(font_size // 1.5)))
+        b.grid(row=i + 2, column=2)
+        l = Label(scroll.scrollable_frame, text=unt.cost)
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=i + 2, column=3)
+    button = Button(f, text="Recruit")
+    button.config(font=font(int(font_size // 1.5)))
+    button.grid(row=3, column=0)
+    button = Button(f, text="Continue")
+    button.config(font=font(int(font_size // 1.5)))
+    button.grid(row=3, column=2)
+    button = Button(r, text="BACK", command=go_back)
+    button.config(font=font(font_size // 2))
+    button.grid(row=2, column=1)
 
 
 if __name__ == '__main__':
