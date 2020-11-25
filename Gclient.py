@@ -39,6 +39,8 @@ def client_send(soc, msg):
         return ptr.client_parse(res, client)
     except ConnectionRefusedError:
         print("Server seems to be shut down.")
+    except ConnectionAbortedError:
+        print("Server seems to be shut down.")
 
 
 def convert(font):
@@ -435,12 +437,16 @@ def room_recruit(r):
         l = Label(scroll.scrollable_frame, text=unt.cost)
         l.config(font=font(int(font_size // 1.5)))
         l.grid(row=i + 2, column=3)
+    points = client_send(client, f"SPO~{ROOM}")
+    l = Label(f, text=f"Total Cost: {sum([val.cost for val in all_units])} {f'/ {points}' if points > 0 else ''}")
+    l.config(font=font(int(font_size // 1.5)))
+    l.grid(row=3, column=0, columnspan=3)
     button = Button(f, text="Recruit")
     button.config(font=font(int(font_size // 1.5)))
-    button.grid(row=3, column=0)
+    button.grid(row=4, column=0)
     button = Button(f, text="Continue")
     button.config(font=font(int(font_size // 1.5)))
-    button.grid(row=3, column=2)
+    button.grid(row=4, column=2)
     button = Button(r, text="BACK", command=go_back)
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)

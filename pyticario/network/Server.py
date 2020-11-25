@@ -25,7 +25,8 @@ class Server:
             "APR": self.add_player_to_room,
             "RPR": self.remove_player_from_room,
             'SAR': self.send_active_rooms,
-            "SRP": self.send_active_rooms_points
+            "SRP": self.send_active_rooms_points,
+            "SPO": self.send_points_of_room
         }
 
         return commands
@@ -274,6 +275,19 @@ class Server:
         send(params[0], f"GAR~{len(a)}")
         for i in range(len(a)):
             send(params[0], f"{a[i]}")
+
+    @staticmethod
+    def send_points_of_room(params):
+        global using_db
+        while using_db:
+            pass
+        using_db = True
+        try:
+            points = Room.Room.get_points_of(params[1])
+            send(params[0], f"GIT~{str(points[0])}")
+        except FileNotFoundError:
+            using_db = False
+            Server.send_error(params[0], 7)
 
     @staticmethod
     def send_error(client, error_number):

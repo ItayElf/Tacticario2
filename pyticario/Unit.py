@@ -14,25 +14,25 @@ class Unit(object):
         self.clas = tup[3]
         self.subclass = tup[4]
 
-        self.cost = tup[5]
+        self.cost = int(tup[5])
 
-        self.men = tup[6]
-        self.weight = tup[7]
-        self.hitpoints = tup[8]
-        self.armor = tup[9]
-        self.shield = tup[10]
-        self.morale = tup[11]
-        self.speed = tup[12]
-        self.melee_attack = tup[13]
-        self.defence = tup[14]
-        self.damage = tup[15]
-        self.ap = tup[16]
-        self.charge = tup[17]
-        self.ammunition = tup[18]
-        self.range = tup[19]
-        self.ranged_attack = tup[20]
-        self.ranged_damage = tup[21]
-        self.ranged_ap = tup[22]
+        self.men = int(tup[6])
+        self.weight = float(tup[7])
+        self.hitpoints = int(tup[8])
+        self.armor = int(tup[9])
+        self.shield = float(tup[10])
+        self.morale = int(tup[11])
+        self.speed = int(tup[12])
+        self.melee_attack = int(tup[13])
+        self.defence = int(tup[14])
+        self.damage = int(tup[15])
+        self.ap = int(tup[16])
+        self.charge = int(tup[17])
+        self.ammunition = int(tup[18])
+        self.range = int(tup[19])
+        self.ranged_attack = int(tup[20])
+        self.ranged_damage = int(tup[21])
+        self.ranged_ap = int(tup[22])
         self.attributes = tup[23].split(',')
 
     def attack(self, other, ranged=False, flank=False, charge=False, front=True, advantage=0):

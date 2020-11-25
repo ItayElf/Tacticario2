@@ -62,6 +62,17 @@ class Room:
             raise IndexError(f"Room {self.name} is full.")
 
     @staticmethod
+    def get_points_of(name):
+        conn = sqlite3.connect(settings.DB)
+        c = conn.cursor()
+        c.execute(f"SELECT points FROM rooms WHERE name='{name}'")
+        x = c.fetchone()
+        if not x:
+            raise FileNotFoundError(f"Room {name} was not found.")
+        conn.close()
+        return x
+
+    @staticmethod
     def get_active_rooms():
         conn = sqlite3.connect(settings.DB)
         c = conn.cursor()

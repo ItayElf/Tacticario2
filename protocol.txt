@@ -11,6 +11,8 @@ get true or false - GTF:
     {HEADER}GTF~ANS(1/0)
 get active rooms - GAR:
     {HEADER}GAR~NUMBER_OF_ROOMS
+get integer - GIT:
+    {HEADER}GIT~INTEGER
 
 
 CLIENT SEND:
@@ -48,6 +50,8 @@ send active rooms - SAR:
     {HEADER}SAR
 send active rooms points - SRP:
     {HEADER}SRP
+send points of room - SPO
+    {HEADER}SPO~NAME
 
 ERRORS:
 done - DON:
