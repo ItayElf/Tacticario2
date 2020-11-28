@@ -284,6 +284,7 @@ class Server:
         using_db = True
         try:
             points = Room.Room.get_points_of(params[1])
+            using_db = False
             send(params[0], f"GIT~{str(points[0])}")
         except FileNotFoundError:
             using_db = False

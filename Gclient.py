@@ -3,7 +3,7 @@ from pyticario.network.common import receive, send
 from functools import partial
 import tkinter as tk
 from tkinter import *
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 import ctypes
 import socket
 
@@ -15,7 +15,7 @@ ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
 
 
-class ScrollableFrame(ttk.Frame):
+class ScrollableFrame(tk.Frame):
     def __init__(self, container, **kwargs):
         super().__init__(container, **kwargs)
         self.canvas = tk.Canvas(self)
@@ -362,7 +362,9 @@ def join_room(r):
 
 def room_recruit(r):
     def go_back():
-        return home(r)
+        res = messagebox.askquestion("Quit", "Do you want to quit?")
+        if res == "yes":
+            return home(r)
 
     def popup_unit(index):
         unitvar = all_units[index]
@@ -380,16 +382,16 @@ def room_recruit(r):
                  'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
         unitup = list(unitvar.as_tuple())[1:]
         unitup[1] = unitup[1].replace('.', '.\n')
+        unitup[-1] = unitup[-1].replace(',', ', ')
         args.remove(args[0])
         for i, (cat, val) in enumerate(zip(args, unitup)):
-            if val == '-1':
-                continue
-            l = Label(fr, text=f"{cat}:")
-            l.config(font=font(new_size))
-            l.grid(row=i + 1, column=0, sticky='ew')
-            l = Label(fr, text=f"{val}")
-            l.config(font=font(new_size))
-            l.grid(row=i + 1, column=1, sticky='ew')
+            if ((type(val) == int or type(val) == float) and val > 0) or type(val) == str:
+                l = Label(fr, text=f"{cat}:")
+                l.config(font=font(new_size))
+                l.grid(row=i + 1, column=0, sticky='ew')
+                l = Label(fr, text=f"{val}")
+                l.config(font=font(new_size))
+                l.grid(row=i + 1, column=1, sticky='ew')
         fr.resizable(False, False)
 
     def remove_unit(unitnum):
@@ -397,6 +399,13 @@ def room_recruit(r):
         if ans and "ERR" in ans:
             print(ans)
         return room_recruit(r)
+
+    def reset_army():
+        client_send(client, f"RSP~{NAME}")
+        return room_recruit(r)
+
+    def recruit_click():
+        return recruit(r)
 
     reset(r)
     font_size = 60
@@ -441,12 +450,124 @@ def room_recruit(r):
     l = Label(f, text=f"Total Cost: {sum([val.cost for val in all_units])} {f'/ {points}' if points > 0 else ''}")
     l.config(font=font(int(font_size // 1.5)))
     l.grid(row=3, column=0, columnspan=3)
-    button = Button(f, text="Recruit")
+    button = Button(f, text="Recruit", command=recruit_click)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=0)
+    button = Button(f, text="Reset", command=reset_army)
+    button.config(font=font(int(font_size // 1.5)))
+    button.grid(row=4, column=1)
     button = Button(f, text="Continue")
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=2)
+    button = Button(r, text="Leave", command=go_back)
+    button.config(font=font(font_size // 2))
+    button.grid(row=2, column=1)
+
+
+def recruit(r):
+    def go_back():
+        return room_recruit(r)
+
+    def unit_page(classs):
+        def ret():
+            return recruit(r)
+
+        def popup_unit(unitvar):
+            def rec_win(unt):
+                def rec(unt, num):
+                    for _ in range(num.get()):
+                        ans = client_send(client, f"AUT~{NAME}~{unt.name}")
+                        if ans and "ERR" in ans:
+                            print(ans)
+                    top.destroy()
+
+                top = Toplevel(fr)
+                top.title("Recruit")
+                x = Label(top, text="Number of units:")
+                x.config(font=font(25))
+                x.grid(columnspan=7, sticky="ew")
+                number = IntVar(top)
+                number.set(1)
+                option = OptionMenu(top, number, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+                option.config(font=font(25))
+                option.grid(row=1, column=1, columnspan=5, sticky="ew")
+                f = partial(rec, unt)
+                b = Button(top, text='Recruit', command=partial(f, number))
+                b.config(font=font(25))
+                b.grid(row=2, column=2, columnspan=3, sticky="ew")
+
+            fr = Toplevel(r)
+            fr.title(unitvar.name)
+            new_size = 15
+
+            l = Label(fr, text=unitvar.name)
+            l.config(font=font(new_size * 2))
+            l.grid(row=1, column=0, columnspan=4)
+            args = [var.replace('_', ' ').title() for var in
+                    ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
+                     'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
+                     'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
+            unitup = list(unitvar.as_tuple())[1:]
+            unitup[1] = unitup[1].replace('.', '.\n')
+            unitup[-1] = unitup[-1].replace(',', ', ')
+            args.remove(args[0])
+            for i, (cat, val) in enumerate(zip(args, unitup)):
+                if ((type(val) == int or type(val) == float) and val > 0) or type(val) == str:
+                    l = Label(fr, text=f"{cat}:")
+                    l.config(font=font(new_size))
+                    l.grid(row=i + 2, column=0, columnspan=2, sticky='ew')
+                    l = Label(fr, text=f"{val}")
+                    l.config(font=font(new_size))
+                    l.grid(row=i + 2, column=2, columnspan=2, sticky='ew')
+            b = Button(fr, text='Recruit', command=partial(rec_win, unitvar))
+            b.config(font=font(new_size))
+            b.grid(row=1, column=3, sticky='e')
+            fr.resizable(False, False)
+
+        reset(r)
+        units = [unt for unt in all_units if unt.category == classs]
+        f2 = Frame()
+        f2.place(relx=0.5, rely=0.5, anchor='center')
+        l = Label(f2, text=classs)
+        l.config(font=font(int(font_size * 1.5)))
+        l.grid(row=0, column=0, columnspan=2)
+        for i, unt in enumerate(units):
+            row = i // 2 + 1
+            col = i % 2
+            b = Button(f2, text=unt.name, command=partial(popup_unit, unt))
+            b.config(font=font(int(font_size // 2)))
+            b.grid(row=row, column=col, sticky="ew")
+        button = Button(r, text="BACK", command=ret)
+        button.config(font=font(font_size // 2))
+        button.grid(row=2, column=1)
+
+    reset(r)
+    font_size = 60
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text="Recruit")
+    l.config(font=font(int(font_size * 1.5)))
+    l.grid(row=0, column=0, columnspan=2)
+    all_units = client_send(client, "SAU~units")
+    if "ERR" in all_units:
+        print("ERROR")
+        return room_recruit(r)
+    order = {'Light': 1, 'Medium': 2, 'Heavy': 3, 'England': 4, "India": 5, "Japan": 6, "Mongolia": 7, "Norway": 8,
+             "Russia": 9}
+    categories = sorted(list(set([unt.category for unt in all_units])), key=lambda x: order[x.split()[0]])
+    regulars = [clas for clas in categories if len(clas.split()) > 1]
+    countries = [clas for clas in categories if len(clas.split()) == 1]
+    # scroll = ScrollableFrame(f)
+    # scroll.canvas.config(width=convert(850), height=convert(700))
+    # scroll.grid(row=1, column=0, columnspan=2, sticky='ew')
+    for i, clas in enumerate(regulars):
+        b = Button(f, text=clas, command=partial(unit_page, clas))
+        b.config(font=font(int(font_size // 2)))
+        b.grid(row=i + 1, column=0, sticky="ew")
+    for i, clas in enumerate(countries):
+        b = Button(f, text=clas, command=partial(unit_page, clas))
+        b.config(font=font(int(font_size // 2)))
+        b.grid(row=i + 1, column=1, sticky="ew")
     button = Button(r, text="BACK", command=go_back)
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
