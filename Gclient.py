@@ -388,7 +388,8 @@ def room_recruit(r):
         unitup[-1] = unitup[-1].replace(',', ', ')
         args.remove(args[0])
         for i, (cat, val) in enumerate(zip(args, unitup)):
-            if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
+            if (((type(val) == int or type(val) == float) and val > 0) or (type(val) == str and val != '')) \
+                    and cat != 'Weight':
                 l = Label(fr, text=f"{cat}:")
                 l.config(font=font(new_size))
                 l.grid(row=i + 1, column=0, sticky='ew')
@@ -517,7 +518,8 @@ def recruit(r):
             unitup[-1] = unitup[-1].replace(',', ', ')
             args.remove(args[0])
             for i, (cat, val) in enumerate(zip(args, unitup)):
-                if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
+                if (((type(val) == int or type(val) == float) and val > 0) or (type(val) == str and val != ''))\
+                        and cat != 'Weight':
                     l = Label(fr, text=f"{cat}:")
                     l.config(font=font(new_size))
                     l.grid(row=i + 2, column=0, columnspan=2, sticky='ew')
