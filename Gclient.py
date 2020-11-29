@@ -72,7 +72,10 @@ def reset(r):
 
     widget_list = all_children(r)
     for item in widget_list:
-        item.grid_forget()
+        try:
+            item.grid_forget()
+        except AttributeError:
+            pass
 
 
 def on_closing(r):
@@ -371,8 +374,6 @@ def room_recruit(r):
         fr = Toplevel()
         fr.title(unitvar.name)
         new_size = 15
-        # fr = Frame(top)
-        # fr.place(relx=0.5, rely=0.5, anchor='center')
         l = Label(fr, text=unitvar.name)
         l.config(font=font(new_size * 2))
         l.grid(row=0, column=0, columnspan=2)
@@ -382,10 +383,12 @@ def room_recruit(r):
                  'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
         unitup = list(unitvar.as_tuple())[1:]
         unitup[1] = unitup[1].replace('.', '.\n')
+        if unitup[1].endswith("\n"):
+            unitup[1] = unitup[1][:-1]
         unitup[-1] = unitup[-1].replace(',', ', ')
         args.remove(args[0])
         for i, (cat, val) in enumerate(zip(args, unitup)):
-            if ((type(val) == int or type(val) == float) and val > 0) or type(val) == str:
+            if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
                 l = Label(fr, text=f"{cat}:")
                 l.config(font=font(new_size))
                 l.grid(row=i + 1, column=0, sticky='ew')
@@ -509,10 +512,12 @@ def recruit(r):
                      'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
             unitup = list(unitvar.as_tuple())[1:]
             unitup[1] = unitup[1].replace('.', '.\n')
+            if unitup[1].endswith("\n"):
+                unitup[1] = unitup[1][:-1]
             unitup[-1] = unitup[-1].replace(',', ', ')
             args.remove(args[0])
             for i, (cat, val) in enumerate(zip(args, unitup)):
-                if ((type(val) == int or type(val) == float) and val > 0) or type(val) == str:
+                if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
                     l = Label(fr, text=f"{cat}:")
                     l.config(font=font(new_size))
                     l.grid(row=i + 2, column=0, columnspan=2, sticky='ew')
@@ -557,9 +562,6 @@ def recruit(r):
     categories = sorted(list(set([unt.category for unt in all_units])), key=lambda x: order[x.split()[0]])
     regulars = [clas for clas in categories if len(clas.split()) > 1]
     countries = [clas for clas in categories if len(clas.split()) == 1]
-    # scroll = ScrollableFrame(f)
-    # scroll.canvas.config(width=convert(850), height=convert(700))
-    # scroll.grid(row=1, column=0, columnspan=2, sticky='ew')
     for i, clas in enumerate(regulars):
         b = Button(f, text=clas, command=partial(unit_page, clas))
         b.config(font=font(int(font_size // 2)))
