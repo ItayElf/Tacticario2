@@ -1,9 +1,10 @@
+import threading
 from pyticario import Player
 from pyticario import Unit
 from pyticario import Room
 from pyticario.network.common import send, receive
 
-using_db = False
+lock = threading.Lock()
 
 
 class Server:
@@ -38,41 +39,35 @@ class Server:
 
     @staticmethod
     def send_unit(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         if params[2].isdigit():
             try:
                 unt = Player.Player(params[1], False).get_unit(int(params[2])).as_tuple()
             except IndexError:
                 Server.send_error(params[0], 3)
-                using_db = False
+                lock.release()
                 return
         else:
             try:
                 unt = Unit.Unit.unit_by_name(params[2]).as_tuple()
             except FileNotFoundError:
                 Server.send_error(params[0], 2)
-                using_db = False
+                lock.release()
                 return
         msg = "GUT~" + '~'.join([str(val) for val in unt])
         send(params[0], msg)
-        using_db = False
+        lock.release()
 
     @staticmethod
     def send_all_units(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Player.Player(params[1], False)
             all_units = a.get_unit(-1)
-            using_db = False
+            lock.release()
         except FileNotFoundError:
             Server.send_error(params[0], 5)
-            using_db = False
+            lock.release()
             return
 
         send(params[0], f"GAU~{len(all_units)}")
@@ -82,61 +77,49 @@ class Server:
 
     @staticmethod
     def create_player(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             Player.Player(params[1], True, params[2])
             send(params[0], "DON")
-            using_db = False
+            lock.release()
         except FileExistsError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 4)
 
     @staticmethod
     def delete_player(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Player.Player(params[1], False)
             a.delete_player()
             send(params[0], 'DON')
-            using_db = False
+            lock.release()
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 5)
 
     @staticmethod
     def reset_player(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Player.Player(params[1], False)
             a.reset_db()
             send(params[0], 'DON')
-            using_db = False
+            lock.release()
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 5)
 
     @staticmethod
     def add_unit(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Player.Player(params[1], False)
             a.add_unit_by_name(params[2])
             send(params[0], 'DON')
-            using_db = False
+            lock.release()
         except FileNotFoundError as e:
-            using_db = False
+            lock.release()
             if "unit" in str(e):
                 Server.send_error(params[0], 2)
             else:
@@ -144,25 +127,19 @@ class Server:
 
     @staticmethod
     def remove_unit(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Player.Player(params[1], False)
             a.remove_unit_form_db(int(params[2]))
             send(params[0], 'DON')
-            using_db = False
+            lock.release()
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 2)
 
     @staticmethod
     def attack(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         p1 = Player.Player(params[1], False)
         p2 = Player.Player(params[3], False)
         ranged = bool(int(params[5]))
@@ -173,121 +150,97 @@ class Server:
         try:
             d, c = p1.attack(int(params[2]), p2, int(params[4]), ranged, flank, charge, front, advantage)
             send(params[0], f"GDC~{d}~{c}")
-            using_db = False
+            lock.release()
         except IndexError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 3)
 
     @staticmethod
     def is_dead_or_ran(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Player.Player(params[1], False)
             res = a.is_dead_or_ran(params[2])
             send(params[0], f"GTF~{int(res)}")
-            using_db = False
+            lock.release()
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 5)
         except IndexError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 3)
 
     @staticmethod
     def is_password_valid(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         send(params[0], f"GTF~{int(Player.Player.check_password(params[1], params[2]))}")
-        using_db = False
+        lock.release()
 
     @staticmethod
     def create_room(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             Room.Room(params[1], True, params[2])
-            using_db = False
+            lock.release()
             send(params[0], "DON")
         except FileExistsError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 6)
 
     @staticmethod
     def add_player_to_room(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Room.Room(params[1], False)
             a.add_player()
-            using_db = False
+            lock.release()
             send(params[0], 'DON')
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 7)
         except IndexError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 8)
 
     @staticmethod
     def remove_player_from_room(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             a = Room.Room(params[1], False)
             a.remove_player()
-            using_db = False
+            lock.release()
             send(params[0], 'DON')
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 7)
 
     @staticmethod
     def send_active_rooms(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         a = Room.Room.get_active_rooms()
-        using_db = False
+        lock.release()
         send(params[0], f"GAR~{len(a)}")
         for i in range(len(a)):
             send(params[0], f"{a[i]}")
 
     @staticmethod
     def send_active_rooms_points(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         a = Room.Room.get_active_rooms_points()
-        using_db = False
+        lock.release()
         send(params[0], f"GAR~{len(a)}")
         for i in range(len(a)):
             send(params[0], f"{a[i]}")
 
     @staticmethod
     def send_points_of_room(params):
-        global using_db
-        while using_db:
-            pass
-        using_db = True
+        lock.acquire()
         try:
             points = Room.Room.get_points_of(params[1])
-            using_db = False
+            lock.release()
             send(params[0], f"GIT~{str(points[0])}")
         except FileNotFoundError:
-            using_db = False
+            lock.release()
             Server.send_error(params[0], 7)
 
     @staticmethod
