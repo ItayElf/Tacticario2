@@ -52,6 +52,8 @@ send active rooms points - SRP:
     {HEADER}SRP
 send points of room - SPO
     {HEADER}SPO~NAME
+change mode to map - MAP
+    {HEADER}MAP~ROOMNAME
 
 ERRORS:
 done - DON:
@@ -75,5 +77,8 @@ room is full - ERR8
     {HEADER}ERR~8
 
 
+normal mode:
+    client sends, server gets, client send DON or error
 
-client sends, server gets, client send DON or error
+map mode:
+    thread that recieve msgs, another that updates, another that sends

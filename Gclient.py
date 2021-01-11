@@ -1,15 +1,20 @@
-from pyticario import protocol as ptr
-from pyticario.network.common import receive, send
-from functools import partial
+import ctypes
+import os
+import socket
+import subprocess
 import tkinter as tk
+from functools import partial
 from tkinter import *
 from tkinter import messagebox
-import ctypes
-import socket
+
+from pyticario import protocol as ptr
+from pyticario.network.common import receive, send
 
 IP = ''
 NAME = ''
 ROOM = ''
+PLAYER_NUMBER = ''
+PID = -55
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
@@ -55,7 +60,7 @@ def setup():
     root = tk.Tk()
     root.title("Tacticario2")
     root.geometry(f"{convert(1920)}x{convert(1080)}")
-    root.protocol("WM_DELETE_WINDOW", lambda x=root: on_closing(x))
+    root.protocol("WM_DELETE_WINDOW", lambda: on_closing(root))
 
     return root
 
@@ -78,15 +83,18 @@ def reset(r):
             pass
 
 
-def on_closing(r):
+def on_closing(r, pid=-55):
     global client
     try:
         res = messagebox.askquestion("Quit", "Do you want to quit?")
         if res == "yes":
+            if pid > 0:
+                os.kill(pid, 9)
             client_send(client, "DIS")
-            root.destroy()
+            r.destroy()
+
     except OSError:
-        root.destroy()
+        r.destroy()
 
 
 def start(r):
@@ -260,7 +268,7 @@ def home(r):
     button = Button(f, text="Join Room", command=join)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=2, column=2)
-    button = Button(r, text="QUIT", command=lambda x=r: on_closing(x))
+    button = Button(r, text="QUIT", command=lambda: on_closing(root))
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
 
@@ -270,7 +278,7 @@ def host_room(r):
         return home(r)
 
     def on_press():
-        global ROOM
+        global ROOM, PLAYER_NUMBER
         if '~' in name.get():
             print("Invalid name.")
             return host_room(r)
@@ -282,6 +290,7 @@ def host_room(r):
             print("This name is being used by another room")
             return host_room(r)
         ROOM = name.get()
+        PLAYER_NUMBER = '1'
         room_recruit(r)
 
     reset(r)
@@ -320,7 +329,7 @@ def join_room(r):
         name.insert(0, txt)
 
     def join():
-        global ROOM
+        global ROOM, PLAYER_NUMBER
         ans = client_send(client, f"APR~{name.get()}")
         if ans == "ERR8":
             print("Room is full")
@@ -328,6 +337,7 @@ def join_room(r):
             print("room not found")
         else:
             ROOM = name.get()
+            PLAYER_NUMBER = '2'
             room_recruit(r)
 
     reset(r)
@@ -459,7 +469,7 @@ def room_recruit(r):
     button = Button(f, text="Reset", command=reset_army)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=1)
-    button = Button(f, text="Continue")
+    button = Button(f, text="Continue", command=lambda: game(r))
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=2)
     button = Button(r, text="Leave", command=go_back)
@@ -573,6 +583,22 @@ def recruit(r):
     button = Button(r, text="BACK", command=go_back)
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
+
+
+def game(r):
+    reset(r)
+    font_size = 45
+    r.geometry(f"{convert(1920) // 2}x{convert(1080)}")
+    f = Frame()
+    f.place(relx=0.5, rely=0.5, anchor='center')
+    l = Label(f, text="Game")
+    l.config(font=font(int(font_size * 1.5)))
+    l.grid(row=0, column=0, columnspan=2)
+    # p = multiprocessing.Process(target=load_map_process, args=(IP, ROOM, PLAYER_NUMBER))
+    # p.start()
+    # p.join()
+    p = subprocess.Popen(["python", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
+    r.protocol("WM_DELETE_WINDOW", lambda: on_closing(root, p.pid))
 
 
 if __name__ == '__main__':
