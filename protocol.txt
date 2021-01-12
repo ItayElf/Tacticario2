@@ -17,7 +17,6 @@ get integer - GIT:
 
 CLIENT SEND:
 
-
 dissconnect - DIS:
     {HEADER}-DIS
 send unit - SUT:
@@ -54,6 +53,11 @@ send points of room - SPO
     {HEADER}SPO~NAME
 change mode to map - MAP
     {HEADER}MAP~ROOMNAME
+
+MAP SEND:
+
+get map - GMP:
+    {HEADER}GMP~{Map.tiles as str}
 
 ERRORS:
 done - DON:

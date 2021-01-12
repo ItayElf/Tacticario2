@@ -49,5 +49,6 @@ def map_parse(msg, client):
     except IndexError:
         pass
 
+
 if __name__ == '__main__':
     pass
