@@ -594,9 +594,6 @@ def game(r):
     l = Label(f, text="Game")
     l.config(font=font(int(font_size * 1.5)))
     l.grid(row=0, column=0, columnspan=2)
-    # p = multiprocessing.Process(target=load_map_process, args=(IP, ROOM, PLAYER_NUMBER))
-    # p.start()
-    # p.join()
     p = subprocess.Popen(["python", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
     r.protocol("WM_DELETE_WINDOW", lambda: on_closing(root, p.pid))
 
