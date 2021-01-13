@@ -132,16 +132,16 @@ def login(r):
             client.settimeout(None)
         except socket.gaierror:
             print("IP is not valid.")
-            return login(r)
+            # return login(r)
         except TimeoutError:
             print("Server seems to be shut down.")
-            return login(r)
+            # return login(r)
         except socket.timeout:
             print("Server seems to be shut down.")
-            return login(r)
+            # return login(r)
         except ConnectionRefusedError:
             print("Server seems to be shut down.")
-            return login(r)
+            # return login(r)
 
         IP = ip.get()
         ans = client_send(client, f"IPV~{name.get()}~{password.get()}")
@@ -197,13 +197,13 @@ def register(r):
             client.settimeout(None)
         except socket.gaierror:
             print("IP is not valid.")
-            return register(r)
+            # return register(r)
         except TimeoutError:
             print("Server seems to be shut down.")
-            return register(r)
+            # return register(r)
         except ConnectionRefusedError:
             print("Server seems to be shut down.")
-            return register(r)
+            # return register(r)
 
         ans = client_send(client, f"CRP~{name.get()}~{password.get()}")
         if ans == 'ERR4':
