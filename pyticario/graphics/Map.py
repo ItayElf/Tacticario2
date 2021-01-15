@@ -31,8 +31,10 @@ class Map:
         self.tiles_in_row = int(len(self.tiles) ** 0.5)
         self.tile_size = self.size // self.tiles_in_row
 
+        self._selected_unit = None
+
     def tile(self, x, y):
-        # get tiles starting at (1,1) and ending at (25,25)
+        # get tiles starting at (1,1)
         return self.tiles[25 * (y - 1) + (x - 1)]
 
     def generate_tiles_from_ratio(self, forest, water, walls):
@@ -91,8 +93,26 @@ class Map:
     def number_of_units(self, player_number):
         return len([val for val in self.units if val.player == player_number]) if self.units else 0
 
+    def get_unit_at(self, x, y):
+        for i, unt in enumerate(self.units):
+            if unt.x == x and unt.y == y:
+                return i
+        return None
+
     def __str__(self):
         return str(self.tiles).replace("'", "").replace(" ", "")[1:-1]
+
+    @property
+    def selected_unit(self):
+        return self._selected_unit
+
+    @selected_unit.setter
+    def selected_unit(self, val):
+        if self._selected_unit is not None:
+            self.units[self._selected_unit].selected = False
+        self._selected_unit = val
+        if self._selected_unit is not None:
+            self.units[self._selected_unit].selected = True
 
 
 if __name__ == '__main__':

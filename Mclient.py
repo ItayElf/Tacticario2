@@ -88,6 +88,8 @@ def get_tile_from_pixels(x_pixels, y_pixels):
     return x_pixels // m.tile_size, (y_pixels - (u.GetSystemMetrics(1) // 2 - m.size // 2)) // m.tile_size
 
 
+# ------------------------ UNITS -----------------------------------
+
 def change_units(server, unt_arr, index):
     def send_to_server():
         send(client, f"GUA~{len(m.units)}")
@@ -110,6 +112,16 @@ def change_units(server, unt_arr, index):
     lock.release()
 
 
+def add_unit(unt):
+    thr.Thread(target=change_units, args=(False, [unt], len(m.units) + 1)).start()
+
+
+def update_unt(unt, index):
+    thr.Thread(target=change_units, args=(False, [unt], index)).start()
+
+
+# --------------------------------------------------------------------------
+
 def draw():
     m.draw_map()
 
@@ -126,9 +138,26 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = get_tile_from_pixels(*pygame.mouse.get_pos())
+                if pygame.mouse.get_pressed(3)[1]:
+                    add_unit(Unit(x, y, m.number_of_units(PLAYER_NUMBER) + 1, PLAYER_NUMBER, 0, 0))
+                elif pygame.mouse.get_pressed(3)[0]:
+                    m.selected_unit = m.get_unit_at(x, y)
+                    if m.selected_unit is not None:
+                        offset = m.units[m.selected_unit].x - x, m.units[m.selected_unit].y - y
+
+            elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_pressed(3)[0]:
-                    thr.Thread(target=change_units, args=(False, [Unit(x, y, m.number_of_units(PLAYER_NUMBER)+1, PLAYER_NUMBER, 0, 0)], 100)).start()
+                    x, y = get_tile_from_pixels(*pygame.mouse.get_pos())
+                    if m.selected_unit is not None:
+                        m.units[m.selected_unit].x = x + offset[0]
+                        m.units[m.selected_unit].y = y + offset[1]
+                elif m.selected_unit is not None:
+                    unt = m.units[m.selected_unit]
+                    update_unt(Unit(unt.x, unt.y, unt.number, unt.player, unt.rotation, unt.active),
+                               m.selected_unit)
+                    m.selected_unit = None
 
         draw()
