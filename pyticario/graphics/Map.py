@@ -1,3 +1,4 @@
+from pyticario.graphics.Gunit import Unit
 import random
 import pygame as pg
 import ctypes
@@ -21,11 +22,11 @@ def convert(font):
     return int(font * ratio)
 
 
-# 25 tiles, 35*35 with 2 pixels of border
 class Map:
-    def __init__(self, screen, tiles_arr):
+    def __init__(self, screen, tiles_arr, units_arr=[]):
         self.screen = screen
         self.tiles = tiles_arr
+        self.units = units_arr
         self.size = u.GetSystemMetrics(0) // 2
         self.tiles_in_row = int(len(self.tiles) ** 0.5)
         self.tile_size = self.size // self.tiles_in_row
@@ -69,8 +70,6 @@ class Map:
                 imgs.append(tiles["water"])
             else:
                 imgs.append(tiles["dirt"])
-            # img = pg.transform.scale(pg.image.load(img), (self.tile_size, self.tile_size))
-            # self.screen.blit(img, (x, y))
             if "wall_right" in self.tiles[i]:
                 imgs.append(tiles["wall_right"])
             if "wall_left" in self.tiles[i]:
@@ -82,6 +81,15 @@ class Map:
             for img in imgs:
                 pic = pg.transform.scale(pg.image.load(img), (self.tile_size, self.tile_size))
                 self.screen.blit(pic, (x, y))
+
+    def draw_map(self):
+        self.draw_tiles()
+        if self.units:
+            for unt in self.units:
+                unt.draw_unit(self.screen, convert(self.tile_size), self.size)
+
+    def number_of_units(self, player_number):
+        return len([val for val in self.units if val.player == player_number]) if self.units else 0
 
     def __str__(self):
         return str(self.tiles).replace("'", "").replace(" ", "")[1:-1]

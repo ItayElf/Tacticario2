@@ -46,8 +46,8 @@ def map_parse(msg, client):
             return f"ERR{params[1]}"
         elif cmd == 'DON':
             return 0
-    except IndexError:
-        pass
+    # except IndexError:
+    #     return f"ERR{params[1]}"
 
 
 if __name__ == '__main__':

@@ -14,28 +14,32 @@ rooms = {}
 
 
 def handle_map(client, room, addr):
-    lock.acquire()
     try:
-        rooms[room].append(addr)
-    except KeyError:
-        rooms[room] = [addr]
-    lock.release()
-    while True:
         lock.acquire()
-        if len(rooms[room]) == 2:
+        try:
+            rooms[room].append(addr)
+        except KeyError:
+            rooms[room] = [addr]
+        lock.release()
+        while True:
+            lock.acquire()
+            if len(rooms[room]) == 2:
+                lock.release()
+                send(client, 'DON')
+                break
             lock.release()
-            send(client, 'DON')
-            break
-        lock.release()
 
-    while True:
-        res = receive(client)
-        lock.acquire()
-        print(res)
-        for ad in rooms[room]:
-            if ad is not addr:
-                send(clients[ad], res)
-        lock.release()
+        while True:
+            res = receive(client)
+            lock.acquire()
+            print(res)
+            for ad in rooms[room]:
+                if ad is not addr:
+                    send(clients[ad], res)
+            lock.release()
+    except OSError as e:
+        rooms[room].remove(addr)
+        raise OSError(e)
 
 
 def handle_client(client, addr):
