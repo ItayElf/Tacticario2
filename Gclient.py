@@ -150,6 +150,7 @@ def login(r):
         IP = ip.get()
         ans = client_send(client, f"IPV~{name.get()}~{password.get()}")
         if not ans:
+            messagebox.showerror("Incorrect Username or Password", "Incorrect Username or Password.")
             print("Incorrect username or password.")
             client_send(client, "DIS")
             return login(r)
