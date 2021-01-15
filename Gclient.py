@@ -45,8 +45,10 @@ def client_send(soc, msg):
         print(f"MSG: {msg}, RES: {res}")
         return ptr.client_parse(res, client)
     except ConnectionRefusedError:
+        messagebox.showerror("Connection Error", "Server seems to be shut down.")
         print("Server seems to be shut down.")
     except ConnectionAbortedError:
+        messagebox.showerror("Connection Error", "Server seems to be shut down.")
         print("Server seems to be shut down.")
 
 
@@ -133,17 +135,17 @@ def login(r):
             client.connect((ip.get(), ptr.PORT))
             client.settimeout(None)
         except socket.gaierror:
+            messagebox.showerror("Invalid IP", "IP is not valid.")
             print("IP is not valid.")
-            # return login(r)
         except TimeoutError:
+            messagebox.showerror("Connection Error", "Server seems to be shut down.")
             print("Server seems to be shut down.")
-            # return login(r)
         except socket.timeout:
+            messagebox.showerror("Connection Error", "Server seems to be shut down.")
             print("Server seems to be shut down.")
-            # return login(r)
         except ConnectionRefusedError:
+            messagebox.showerror("Connection Error", "Server seems to be shut down.")
             print("Server seems to be shut down.")
-            # return login(r)
 
         IP = ip.get()
         ans = client_send(client, f"IPV~{name.get()}~{password.get()}")
@@ -198,14 +200,14 @@ def register(r):
             client.connect((ip.get(), ptr.PORT))
             client.settimeout(None)
         except socket.gaierror:
+            messagebox.showerror("Invalid IP", "IP is not valid.")
             print("IP is not valid.")
-            # return register(r)
         except TimeoutError:
+            messagebox.showerror("Connection Error", "Server seems to be shut down.")
             print("Server seems to be shut down.")
-            # return register(r)
         except ConnectionRefusedError:
+            messagebox.showerror("Connection Error", "Server seems to be shut down.")
             print("Server seems to be shut down.")
-            # return register(r)
 
         ans = client_send(client, f"CRP~{name.get()}~{password.get()}")
         if ans == 'ERR4':
@@ -286,13 +288,16 @@ def host_room(r):
                 print("Invalid name.")
                 return host_room(r)
         except IndexError:
+            messagebox.showerror("Invalid Name", "Room name can only contain letters, numbers, underscores and dashes.")
             print("Invalid name.")
             return host_room(r)
         if not (points.get().isdigit() or points.get() == '-1'):
+            messagebox.showerror("Invalid Points", "Points can only be a positive integer or '-1' for infinite points.")
             print("Invalid points")
             return host_room(r)
         ans = client_send(client, f"CRR~{name.get()}~{points.get()}~{NAME}")
         if ans == 'ERR6':
+            messagebox.showerror("Invalid Name", "The name you've entered is being used by another room.")
             print("This name is being used by another room")
             return host_room(r)
         ROOM = name.get()
@@ -338,8 +343,10 @@ def join_room(r):
         global ROOM, PLAYER_NUMBER
         ans = client_send(client, f"APR~{name.get()}~{NAME}")
         if ans == "ERR8":
+            messagebox.showerror("Room is Full", "The room you tried to join is full.")
             print("Room is full")
         elif ans == "ERR7":
+            messagebox.showerror("Room not Found", "The room you tried to join was not found. Try again.")
             print("room not found")
         else:
             ROOM = name.get()
@@ -366,8 +373,8 @@ def join_room(r):
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
     scroll_frame = ScrollableFrame(f)
-    scroll_frame.scrollable_frame.config(bg="white", width=convert(800), height=(500))
-    scroll_frame.canvas.config(bg="white", width=convert(800), height=(500))
+    scroll_frame.scrollable_frame.config(bg="white", width=convert(800), height=convert(500))
+    scroll_frame.canvas.config(bg="white", width=convert(800), height=convert(500))
     scroll_frame.grid(row=2, column=1)
     active_rooms = client_send(client, "SAR")
     active_points = client_send(client, 'SRP')
