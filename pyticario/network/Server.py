@@ -28,7 +28,8 @@ class Server:
             'SAR': self.send_active_rooms,
             "SRP": self.send_active_rooms_points,
             "SPO": self.send_points_of_room,
-            'SSP': self.send_second_player
+            'SSP': self.send_second_player,
+            'SAB': self.send_attribute
         }
 
         return commands
@@ -261,6 +262,17 @@ class Server:
         except FileNotFoundError:
             lock.release()
             Server.send_error(params[0], 7)
+
+    @staticmethod
+    def send_attribute(params):
+        lock.acquire()
+        try:
+            atr = Unit.Unit.get_attribute(params[1])
+            lock.release()
+            send(params[0], f"GAB~{atr[0]}~{atr[1]}")
+        except FileNotFoundError:
+            lock.release()
+            Server.send_error(params[0], 9)
 
     @staticmethod
     def send_error(client, error_number):

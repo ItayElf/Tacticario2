@@ -42,8 +42,15 @@ class Unit(object):
                 m *= 1.25
             if charge and self.charge > 0:
                 m *= (1 + self.charge / 100)
+            if "Polearm" in self.attributes and "Cavalry" in other.clas:
+                m *= 1.25
+            if 'Anti-Armor' in self.attributes and 'Heavy' in other.clas:
+                m *= 1.25
+            if "Flank Expert" in self.attributes:
+                m *= 1.25
 
             return m
+
         if ranged and self.ammunition == 0:
             raise ValueError("No ammunition.")
         attack_skill = self.melee_attack if not ranged else self.ranged_attack
@@ -71,6 +78,10 @@ class Unit(object):
 
         if other.men != 0:
             morale_bonus = 1.5 if flank else 1
+            if "Fearsome" in self.attributes:
+                morale_bonus *= 1.15
+            if 'Unbreakable' in other.attributes:
+                morale_bonus *= 0.85
             ratio = (men_before - other.men) / men_before + 0.5
             other.morale -= (men_before - other.men) * other.weight * ratio * morale_bonus
             other.morale = max(math.ceil(other.morale), 0)
@@ -95,17 +106,19 @@ class Unit(object):
             raise FileNotFoundError(f"The unit {unit_name} was not found on DB.")
         return Unit(tup)
 
-    # @staticmethod
-    # def unit_as_tuple(unit_name, table='units'):
-    #     conn = sqlite3.connect(settings.DB)
-    #     c = conn.cursor()
-    #     c.execute(f"SELECT * FROM {table} WHERE name='{unit_name}'")
-    #     tup = c.fetchone()
-    #     conn.close()
-    #     if not tup:
-    #         raise FileNotFoundError(f"The unit {unit_name} was not found on DB.")
-    #     return tup
+    @staticmethod
+    def get_attribute(attribute):
+        conn = sqlite3.connect(settings.DB)
+        c = conn.cursor()
+        c.execute(f"SELECT * FROM attributes WHERE name='{attribute}'")
+        tup = c.fetchone()
+        conn.close()
+        if not tup:
+            raise FileNotFoundError(f"The attribute {attribute} was not found on DB.")
+        return tup
 
 
 if __name__ == '__main__':
-    pass
+    a = Unit.unit_by_name("Heavy Swordsman")
+    b = Unit.unit_by_name("Anti-Armor Squad")
+    print(b.resolve(a))

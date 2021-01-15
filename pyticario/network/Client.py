@@ -12,7 +12,8 @@ class Client:
             "GTF": self.get_true_or_false,
             "GAR": self.get_active_rooms,
             "GIT": self.get_integer,
-            'GST': self.get_string
+            'GST': self.get_string,
+            'GAB': self.get_attribute
         }
 
         return commands
@@ -61,6 +62,10 @@ class Client:
     @staticmethod
     def get_string(params):
         return params[1]
+
+    @staticmethod
+    def get_attribute(params):
+        return params[1:]
 
     @staticmethod
     def send_error(client, error_number):

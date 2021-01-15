@@ -101,6 +101,83 @@ def on_closing(r, pid=-55):
         r.destroy()
 
 
+def popup_unit(r, unitvar, rec_button=False):
+    def rec_win(unt):
+        def rec(unt, num):
+            for _ in range(num.get()):
+                ans = client_send(client, f"AUT~{NAME}~{unt.name}")
+                if ans and "ERR" in ans:
+                    print(ans)
+            top.destroy()
+
+        top = Toplevel(fr)
+        top.title("Recruit")
+        x = Label(top, text="Number of units:")
+        x.config(font=font(25))
+        x.grid(columnspan=7, sticky="ew")
+        number = IntVar(top)
+        number.set(1)
+        option = OptionMenu(top, number, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        option.config(font=font(25))
+        option.grid(row=1, column=1, columnspan=5, sticky="ew")
+        f = partial(rec, unt)
+        b = Button(top, text='Recruit', command=partial(f, number))
+        b.config(font=font(25))
+        b.grid(row=2, column=2, columnspan=3, sticky="ew")
+
+    def show_attribute(attribute, _e):
+        attribute_tup = client_send(client, f"SAB~{attribute}")
+        print(attribute_tup)
+        messagebox.Message(title=attribute_tup[0], message=attribute_tup[1]).show()
+
+    fr = Toplevel(r)
+    fr.title(unitvar.name)
+    new_size = 15
+
+    l = Label(fr, text=unitvar.name)
+    l.config(font=font(new_size * 2))
+    l.grid(row=1, column=0, columnspan=4)
+    l = Label(fr, text=unitvar.description)
+    l.config(font=font(new_size))
+    l.grid(row=2, column=0, columnspan=4)
+    l = Label(fr, text=' ')
+    l.config(font=font(new_size))
+    l.grid(row=3, column=0, columnspan=4)
+    args = [var.replace('_', ' ').title() for var in
+            ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
+             'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
+             'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
+    unitup = list(unitvar.as_tuple())[1:]
+    unitup[1] = unitup[1].replace('.', '.\n')
+    if unitup[1].endswith("\n"):
+        unitup[1] = unitup[1][:-1]
+    # unitup[-1] = unitup[-1].replace(',', ', ')
+    args.remove(args[0])
+    for i, (cat, val) in enumerate(zip(args, unitup)):
+        if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and (cat != 'Weight' and cat != 'Name' and cat != 'Description'):
+            if cat == 'Attributes':
+                l = Label(fr, text=f"{cat}:")
+                l.config(font=font(new_size))
+                l.grid(row=i + 4, column=0, columnspan=2, sticky='ew')
+                for j, attr in enumerate(val.split(',')):
+                    l = Label(fr, text=f"{attr}", fg="blue", cursor="hand2")
+                    l.config(font=font(new_size))
+                    l.grid(row=i + 4 + j, column=2, columnspan=2, sticky='ew')
+                    l.bind("<Button-1>", partial(show_attribute, attr))
+            else:
+                l = Label(fr, text=f"{cat}:")
+                l.config(font=font(new_size))
+                l.grid(row=i + 4, column=0, columnspan=2, sticky='ew')
+                l = Label(fr, text=f"{val}")
+                l.config(font=font(new_size))
+                l.grid(row=i + 4, column=2, columnspan=2, sticky='ew')
+    if rec_button:
+        b = Button(fr, text='Recruit', command=partial(rec_win, unitvar))
+        b.config(font=font(new_size))
+        b.grid(row=1, column=3, sticky='e')
+    fr.resizable(False, False)
+
+
 def start(r):
     def goto_login():
         return login(r)
@@ -394,34 +471,6 @@ def room_recruit(r):
             ans = client_send(client, f"RPR~{ROOM}~{NAME}")
             return home(r)
 
-    def popup_unit(index):
-        unitvar = all_units[index]
-        fr = Toplevel()
-        fr.title(unitvar.name)
-        new_size = 15
-        l = Label(fr, text=unitvar.name)
-        l.config(font=font(new_size * 2))
-        l.grid(row=0, column=0, columnspan=2)
-        args = [var.replace('_', ' ').title() for var in
-                ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
-                 'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
-                 'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
-        unitup = list(unitvar.as_tuple())[1:]
-        unitup[1] = unitup[1].replace('.', '.\n')
-        if unitup[1].endswith("\n"):
-            unitup[1] = unitup[1][:-1]
-        unitup[-1] = unitup[-1].replace(',', ', ')
-        args.remove(args[0])
-        for i, (cat, val) in enumerate(zip(args, unitup)):
-            if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
-                l = Label(fr, text=f"{cat}:")
-                l.config(font=font(new_size))
-                l.grid(row=i + 1, column=0, sticky='ew')
-                l = Label(fr, text=f"{val}")
-                l.config(font=font(new_size))
-                l.grid(row=i + 1, column=1, sticky='ew')
-        fr.resizable(False, False)
-
     def remove_unit(unitnum):
         ans = client_send(client, f"RUT~{NAME}~{unitnum}")
         if ans and "ERR" in ans:
@@ -468,7 +517,7 @@ def room_recruit(r):
         l = Label(scroll.scrollable_frame, text=i + 1)
         l.config(font=font(int(font_size // 1.5)))
         l.grid(row=i + 2, column=1)
-        b = Button(scroll.scrollable_frame, text=unt.name, command=partial(popup_unit, i))
+        b = Button(scroll.scrollable_frame, text=unt.name, command=partial(popup_unit, r, all_units[i]))
         b.config(font=font(int(font_size // 1.5)))
         b.grid(row=i + 2, column=2)
         l = Label(scroll.scrollable_frame, text=unt.cost)
@@ -500,60 +549,6 @@ def recruit(r):
         def ret():
             return recruit(r)
 
-        def popup_unit(unitvar):
-            def rec_win(unt):
-                def rec(unt, num):
-                    for _ in range(num.get()):
-                        ans = client_send(client, f"AUT~{NAME}~{unt.name}")
-                        if ans and "ERR" in ans:
-                            print(ans)
-                    top.destroy()
-
-                top = Toplevel(fr)
-                top.title("Recruit")
-                x = Label(top, text="Number of units:")
-                x.config(font=font(25))
-                x.grid(columnspan=7, sticky="ew")
-                number = IntVar(top)
-                number.set(1)
-                option = OptionMenu(top, number, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-                option.config(font=font(25))
-                option.grid(row=1, column=1, columnspan=5, sticky="ew")
-                f = partial(rec, unt)
-                b = Button(top, text='Recruit', command=partial(f, number))
-                b.config(font=font(25))
-                b.grid(row=2, column=2, columnspan=3, sticky="ew")
-
-            fr = Toplevel(r)
-            fr.title(unitvar.name)
-            new_size = 15
-
-            l = Label(fr, text=unitvar.name)
-            l.config(font=font(new_size * 2))
-            l.grid(row=1, column=0, columnspan=4)
-            args = [var.replace('_', ' ').title() for var in
-                    ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
-                     'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
-                     'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
-            unitup = list(unitvar.as_tuple())[1:]
-            unitup[1] = unitup[1].replace('.', '.\n')
-            if unitup[1].endswith("\n"):
-                unitup[1] = unitup[1][:-1]
-            unitup[-1] = unitup[-1].replace(',', ', ')
-            args.remove(args[0])
-            for i, (cat, val) in enumerate(zip(args, unitup)):
-                if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
-                    l = Label(fr, text=f"{cat}:")
-                    l.config(font=font(new_size))
-                    l.grid(row=i + 2, column=0, columnspan=2, sticky='ew')
-                    l = Label(fr, text=f"{val}")
-                    l.config(font=font(new_size))
-                    l.grid(row=i + 2, column=2, columnspan=2, sticky='ew')
-            b = Button(fr, text='Recruit', command=partial(rec_win, unitvar))
-            b.config(font=font(new_size))
-            b.grid(row=1, column=3, sticky='e')
-            fr.resizable(False, False)
-
         reset(r)
         units = [unt for unt in all_units if unt.category == classs]
         f2 = Frame()
@@ -564,7 +559,7 @@ def recruit(r):
         for i, unt in enumerate(units):
             row = i // 2 + 1
             col = i % 2
-            b = Button(f2, text=unt.name, command=partial(popup_unit, unt))
+            b = Button(f2, text=unt.name, command=partial(popup_unit, r, unt, True))
             b.config(font=font(int(font_size // 2)))
             b.grid(row=row, column=col, sticky="ew")
         button = Button(r, text="BACK", command=ret)
@@ -786,7 +781,7 @@ def game(r):
             l = Label(scroll.scrollable_frame, text=i + 1)
             l.config(font=font(int(font_size // 1.5)))
             l.grid(row=i + 2, column=0)
-            b = Button(scroll.scrollable_frame, text=unt.name, command=partial(popup_unit, unt))
+            b = Button(scroll.scrollable_frame, text=unt.name, command=partial(popup_unit, r, unt))
             b.config(font=font(int(font_size // 1.5)))
             b.grid(row=i + 2, column=1)
             l = Label(scroll.scrollable_frame, text=unt.men)
@@ -801,34 +796,6 @@ def game(r):
         atk = Button(f, text="Attack", command=attack)
         atk.config(font=font(font_size))
         atk.grid(row=2, column=2)
-
-    def popup_unit(unitvar):
-        fr = Toplevel(r)
-        fr.title(unitvar.name)
-        new_size = 15
-
-        l = Label(fr, text=unitvar.name)
-        l.config(font=font(new_size * 2))
-        l.grid(row=1, column=0, columnspan=4)
-        args = [var.replace('_', ' ').title() for var in
-                ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
-                 'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
-                 'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
-        unitup = list(unitvar.as_tuple())[1:]
-        unitup[1] = unitup[1].replace('.', '.\n')
-        if unitup[1].endswith("\n"):
-            unitup[1] = unitup[1][:-1]
-        unitup[-1] = unitup[-1].replace(',', ', ')
-        args.remove(args[0])
-        for i, (cat, val) in enumerate(zip(args, unitup)):
-            if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
-                l = Label(fr, text=f"{cat}:")
-                l.config(font=font(new_size))
-                l.grid(row=i + 2, column=0, columnspan=2, sticky='ew')
-                l = Label(fr, text=f"{val}")
-                l.config(font=font(new_size))
-                l.grid(row=i + 2, column=2, columnspan=2, sticky='ew')
-        fr.resizable(False, False)
 
     font_s = 45
     refresh(font_s)
