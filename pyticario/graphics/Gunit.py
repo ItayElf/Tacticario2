@@ -23,7 +23,7 @@ class Unit:
         self.y = int(y)
         self.number = int(number)
         self.player = int(player)
-        self.rotation = int(rotation)
+        self.rotation = int(rotation) % 4
         self.active = bool(int(active))
         self.selected = False
 
