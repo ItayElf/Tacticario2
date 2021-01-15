@@ -27,7 +27,8 @@ class Server:
             "RPR": self.remove_player_from_room,
             'SAR': self.send_active_rooms,
             "SRP": self.send_active_rooms_points,
-            "SPO": self.send_points_of_room
+            "SPO": self.send_points_of_room,
+            'SSP': self.send_second_player
         }
 
         return commands
@@ -192,7 +193,7 @@ class Server:
         lock.acquire()
         try:
             a = Room.Room(params[1], False)
-            a.add_player()
+            a.add_player(params[2])
             lock.release()
             send(params[0], 'DON')
         except FileNotFoundError:
@@ -207,12 +208,15 @@ class Server:
         lock.acquire()
         try:
             a = Room.Room(params[1], False)
-            a.remove_player()
+            a.remove_player(params[2])
             lock.release()
             send(params[0], 'DON')
         except FileNotFoundError:
             lock.release()
             Server.send_error(params[0], 7)
+        except ValueError:
+            lock.release()
+            Server.send_error(params[0], 5)
 
     @staticmethod
     def send_active_rooms(params):
@@ -239,6 +243,21 @@ class Server:
             points = Room.Room.get_points_of(params[1])
             lock.release()
             send(params[0], f"GIT~{str(points[0])}")
+        except FileNotFoundError:
+            lock.release()
+            Server.send_error(params[0], 7)
+
+    @staticmethod
+    def send_second_player(params):
+        lock.acquire()
+        try:
+            pnames = Room.Room.get_pnames(params[1])
+            lock.release()
+            pnames = pnames[0].split(',')
+            if len(pnames) != 2:
+                Server.send_second_player(params)
+            pnames = [val for val in pnames if val != params[2]]
+            send(params[0], f"GST~{pnames[0]}")
         except FileNotFoundError:
             lock.release()
             Server.send_error(params[0], 7)

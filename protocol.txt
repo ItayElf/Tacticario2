@@ -13,6 +13,8 @@ get active rooms - GAR:
     {HEADER}GAR~NUMBER_OF_ROOMS
 get integer - GIT:
     {HEADER}GIT~INTEGER
+get string - GST
+    {HEADER}GST~STRING
 
 
 CLIENT SEND:
@@ -40,11 +42,11 @@ is dead or ran - IDR:
 is password valid - IPV:
     {HEADER}IPV~NAME~PASSWORD
 create room - CRR:
-    {HEADER}CRR~NAME~POINTS
+    {HEADER}CRR~NAME~POINTS~PNAME
 add player to room - APR:
-    {HEADER}APR~ROOM
+    {HEADER}APR~ROOM~NAME
 remove player from room - RPR:
-    {HEADER}RPR~ROOM
+    {HEADER}RPR~ROOM~NAME
 send active rooms - SAR:
     {HEADER}SAR
 send active rooms points - SRP:
@@ -53,6 +55,8 @@ send points of room - SPO
     {HEADER}SPO~NAME
 change mode to map - MAP
     {HEADER}MAP~ROOMNAME
+send secound player - SSP
+    {HEADER}SSP~ROOM~NAME
 
 MAP SEND:
 

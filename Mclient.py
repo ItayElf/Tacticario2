@@ -28,6 +28,7 @@ def map_send(soc, msg):
     try:
         send(soc, msg)
         res = receive(client)
+        print(f"(MAP) MSG: {msg}, RES: {res}")
         return ptr.map_parse(res, client)
     except ConnectionRefusedError:
         print("Server seems to be shut down.")

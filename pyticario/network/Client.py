@@ -11,7 +11,8 @@ class Client:
             "GDC": self.get_damage_and_casualties,
             "GTF": self.get_true_or_false,
             "GAR": self.get_active_rooms,
-            "GIT": self.get_integer
+            "GIT": self.get_integer,
+            'GST': self.get_string
         }
 
         return commands
@@ -56,6 +57,10 @@ class Client:
     @staticmethod
     def get_integer(params):
         return int(params[1])
+
+    @staticmethod
+    def get_string(params):
+        return params[1]
 
     @staticmethod
     def send_error(client, error_number):

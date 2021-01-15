@@ -1,3 +1,4 @@
+import re
 import ctypes
 import os
 import socket
@@ -41,6 +42,7 @@ def client_send(soc, msg):
     try:
         send(soc, msg)
         res = receive(client)
+        print(f"MSG: {msg}, RES: {res}")
         return ptr.client_parse(res, client)
     except ConnectionRefusedError:
         print("Server seems to be shut down.")
@@ -60,7 +62,7 @@ def setup():
     root = tk.Tk()
     root.title("Tacticario2")
     root.geometry(f"{convert(1920)}x{convert(1080)}")
-    root.protocol("WM_DELETE_WINDOW", lambda: on_closing(root))
+    root.protocol("WM_DELETE_WINDOW", partial(on_closing, root))
 
     return root
 
@@ -268,7 +270,7 @@ def home(r):
     button = Button(f, text="Join Room", command=join)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=2, column=2)
-    button = Button(r, text="QUIT", command=lambda: on_closing(root))
+    button = Button(r, text="QUIT", command=partial(on_closing, root))
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
 
@@ -279,13 +281,17 @@ def host_room(r):
 
     def on_press():
         global ROOM, PLAYER_NUMBER
-        if '~' in name.get():
+        try:
+            if re.findall("^[A-Za-z0-9_-]+$", name.get())[0] != name.get():
+                print("Invalid name.")
+                return host_room(r)
+        except IndexError:
             print("Invalid name.")
             return host_room(r)
         if not (points.get().isdigit() or points.get() == '-1'):
             print("Invalid points")
             return host_room(r)
-        ans = client_send(client, f"CRR~{name.get()}~{points.get()}")
+        ans = client_send(client, f"CRR~{name.get()}~{points.get()}~{NAME}")
         if ans == 'ERR6':
             print("This name is being used by another room")
             return host_room(r)
@@ -330,7 +336,7 @@ def join_room(r):
 
     def join():
         global ROOM, PLAYER_NUMBER
-        ans = client_send(client, f"APR~{name.get()}")
+        ans = client_send(client, f"APR~{name.get()}~{NAME}")
         if ans == "ERR8":
             print("Room is full")
         elif ans == "ERR7":
@@ -377,6 +383,7 @@ def room_recruit(r):
     def go_back():
         res = messagebox.askquestion("Quit", "Do you want to quit?")
         if res == "yes":
+            ans = client_send(client, f"RPR~{ROOM}~{NAME}")
             return home(r)
 
     def popup_unit(index):
@@ -469,7 +476,7 @@ def room_recruit(r):
     button = Button(f, text="Reset", command=reset_army)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=1)
-    button = Button(f, text="Continue", command=lambda: game(r))
+    button = Button(f, text="Continue", command=partial(game, r))
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=2)
     button = Button(r, text="Leave", command=go_back)
@@ -586,16 +593,242 @@ def recruit(r):
 
 
 def game(r):
-    reset(r)
-    font_size = 45
+    def attack():
+        def attacker_unit():
+            all_units = client_send(client, f"SAU~{NAME}")
+            l = Label(fr, text="Attack With:")
+            l.config(font=font(font_size))
+            l.grid(row=0, column=0, columnspan=2)
+            scroll = ScrollableFrame(fr)
+            scroll.canvas.config(width=convert(350), height=convert(350))
+            scroll.grid(row=1, column=0, columnspan=2, sticky='ew')
+            l = Label(scroll.scrollable_frame, text="ID")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=0, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="Name")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=1, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="Soldiers")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=2, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="Morale")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=3, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="-" * 50)
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=1, column=0, columnspan=4)
+            for i, unt in enumerate(all_units):
+                if unt.men == 0 or unt.morale == 0:
+                    continue
+                l = Label(scroll.scrollable_frame, text=i + 1)
+                l.config(font=font(int(font_size // 1.5)))
+                l.grid(row=i + 2, column=0)
+                b = Button(scroll.scrollable_frame, text=unt.name, command=partial(opponent_unit, i + 1))
+                b.config(font=font(int(font_size // 1.5)))
+                b.grid(row=i + 2, column=1)
+                l = Label(scroll.scrollable_frame, text=unt.men)
+                l.config(font=font(int(font_size // 1.5)))
+                l.grid(row=i + 2, column=2)
+                l = Label(scroll.scrollable_frame, text=unt.morale)
+                l.config(font=font(int(font_size // 1.5)))
+                l.grid(row=i + 2, column=3)
+
+        def opponent_unit(unit1_id):
+            reset(fr)
+            opp_units = client_send(client, f"SAU~{opponent}")
+            l = Label(fr, text="Attack Target:")
+            l.config(font=font(font_size))
+            l.grid(row=0, column=0, columnspan=2)
+            scroll = ScrollableFrame(fr)
+            scroll.canvas.config(width=convert(350), height=convert(350))
+            scroll.grid(row=1, column=0, columnspan=2, sticky='ew')
+            l = Label(scroll.scrollable_frame, text="ID")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=0, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="Name")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=1, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="Soldiers")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=2, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="Morale")
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=0, column=3, sticky="ew")
+            l = Label(scroll.scrollable_frame, text="-" * 50)
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=1, column=0, columnspan=4)
+            for i, unt in enumerate(opp_units):
+                if unt.men == 0 or unt.morale == 0:
+                    continue
+                l = Label(scroll.scrollable_frame, text=i + 1)
+                l.config(font=font(int(font_size // 1.5)))
+                l.grid(row=i + 2, column=0)
+                b = Button(scroll.scrollable_frame, text=unt.name, command=partial(params, unit1_id, i + 1))
+                b.config(font=font(int(font_size // 1.5)))
+                b.grid(row=i + 2, column=1)
+                l = Label(scroll.scrollable_frame, text=unt.men)
+                l.config(font=font(int(font_size // 1.5)))
+                l.grid(row=i + 2, column=2)
+                l = Label(scroll.scrollable_frame, text='?' if unt.morale > 15 else '!')
+                l.config(font=font(int(font_size // 1.5)))
+                l.grid(row=i + 2, column=3)
+            button = Button(fr, text="BACK", command=attacker_unit)
+            button.config(font=font(font_size // 2))
+            button.grid(row=2, column=1)
+
+        def params(unit1_id, unit2_id):
+            def ranged_click():
+                if ranged_var.get():
+                    flank.config(state=DISABLED)
+                    flank_var.set(0)
+                    charge.config(state=DISABLED)
+                    charge_var.set(0)
+                    front.config(state=NORMAL)
+                else:
+                    flank.config(state=NORMAL)
+                    charge.config(state=NORMAL)
+                    front.config(state=DISABLED)
+                    front_var.set(0)
+
+            def flank_charge_click():
+                if flank_var.get() or charge_var.get():
+                    ranged.config(state=DISABLED)
+                    ranged_var.set(0)
+                    front.config(state=DISABLED)
+                    front_var.set(0)
+                else:
+                    ranged.config(state=NORMAL)
+
+            def atk_cmd():
+                damage, casualties = client_send(client,
+                                                 f"ATK~{NAME}~{unit1_id}~{opponent}~{unit2_id}~{ranged_var.get()}~{flank_var.get()}~"
+                                                 f"{charge_var.get()}~{front_var.get()}~{adv_var.get() - disadv_var.get()}")
+                atk_unt = client_send(client, f"SUT~{NAME}~{unit1_id}")
+                def_unt = client_send(client, f"SUT~{opponent}~{unit2_id}")
+                messagebox.showinfo("Attack Result", f"Your {atk_unt.name} dealt {int(damage)} damage"
+                                                     f"to your opponent's {def_unt.name}, resulting in {casualties} casualties.")
+                fr.destroy()
+
+            reset(fr)
+            l = Label(fr, text="Modifiers:")
+            l.config(font=font(font_size))
+            l.grid(row=0, column=0, columnspan=2)
+            ranged_var = IntVar()
+            ranged = Checkbutton(fr, text="Ranged", variable=ranged_var, command=ranged_click)
+            ranged.config(font=font(font_size))
+            ranged.grid(row=1, column=0)
+            front_var = IntVar()
+            front = Checkbutton(fr, text="Front", variable=front_var)
+            front.config(font=font(font_size), state=DISABLED)
+            front.grid(row=2, column=0)
+            flank_var = IntVar()
+            flank = Checkbutton(fr, text="Flank", variable=flank_var, command=flank_charge_click)
+            flank.config(font=font(font_size))
+            flank.grid(row=1, column=1)
+            charge_var = IntVar()
+            charge = Checkbutton(fr, text="Charge", variable=charge_var, command=flank_charge_click)
+            charge.config(font=font(font_size))
+            charge.grid(row=2, column=1)
+            adv_var = IntVar()
+            adv = Checkbutton(fr, text="Advantage", variable=adv_var)
+            adv.config(font=font(font_size))
+            adv.grid(row=3, column=0)
+            disadv_var = IntVar()
+            disadv = Checkbutton(fr, text="Disadvantage", variable=disadv_var)
+            disadv.config(font=font(font_size))
+            disadv.grid(row=3, column=1)
+            atk = Button(fr, text="Attack", command=atk_cmd)
+            atk.config(font=font(font_size))
+            atk.grid(row=4, column=0, columnspan=2)
+
+        fr = Toplevel(r)
+        fr.title("Attack")
+        font_size = 25
+        attacker_unit()
+
+    def refresh(font_size):
+        reset(r)
+        all_units = client_send(client, f"SAU~{NAME}")
+        f = Frame()
+        f.place(relx=0.5, rely=0.5, anchor='center')
+        l = Label(f, text="Game")
+        l.config(font=font(int(font_size * 1.5)))
+        l.grid(row=0, column=0, columnspan=3)
+        scroll = ScrollableFrame(f)
+        scroll.canvas.config(width=convert(850), height=convert(700))
+        scroll.grid(row=1, column=0, columnspan=3, sticky='ew')
+        l = Label(scroll.scrollable_frame, text="ID")
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=0, column=0, sticky="ew")
+        l = Label(scroll.scrollable_frame, text="Name")
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=0, column=1, sticky="ew")
+        l = Label(scroll.scrollable_frame, text="Soldiers")
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=0, column=2, sticky="ew")
+        l = Label(scroll.scrollable_frame, text="Morale")
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=0, column=3, sticky="ew")
+        l = Label(scroll.scrollable_frame, text="-" * 50)
+        l.config(font=font(int(font_size // 1.5)))
+        l.grid(row=1, column=0, columnspan=4)
+        for i, unt in enumerate(all_units):
+            if unt.men == 0 or unt.morale == 0:
+                continue
+            l = Label(scroll.scrollable_frame, text=i + 1)
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=i + 2, column=0)
+            b = Button(scroll.scrollable_frame, text=unt.name, command=partial(popup_unit, unt))
+            b.config(font=font(int(font_size // 1.5)))
+            b.grid(row=i + 2, column=1)
+            l = Label(scroll.scrollable_frame, text=unt.men)
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=i + 2, column=2)
+            l = Label(scroll.scrollable_frame, text=unt.morale)
+            l.config(font=font(int(font_size // 1.5)))
+            l.grid(row=i + 2, column=3)
+        ref = Button(f, text="Refresh", command=partial(refresh, font_size))
+        ref.config(font=font(font_size))
+        ref.grid(row=2, column=0)
+        atk = Button(f, text="Attack", command=attack)
+        atk.config(font=font(font_size))
+        atk.grid(row=2, column=2)
+
+    def popup_unit(unitvar):
+        fr = Toplevel(r)
+        fr.title(unitvar.name)
+        new_size = 15
+
+        l = Label(fr, text=unitvar.name)
+        l.config(font=font(new_size * 2))
+        l.grid(row=1, column=0, columnspan=4)
+        args = [var.replace('_', ' ').title() for var in
+                ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
+                 'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',
+                 'ammunition', 'range', 'ranged_attack', 'ranged_damage', 'ranged_ap', 'attributes']]
+        unitup = list(unitvar.as_tuple())[1:]
+        unitup[1] = unitup[1].replace('.', '.\n')
+        if unitup[1].endswith("\n"):
+            unitup[1] = unitup[1][:-1]
+        unitup[-1] = unitup[-1].replace(',', ', ')
+        args.remove(args[0])
+        for i, (cat, val) in enumerate(zip(args, unitup)):
+            if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and cat != 'Weight':
+                l = Label(fr, text=f"{cat}:")
+                l.config(font=font(new_size))
+                l.grid(row=i + 2, column=0, columnspan=2, sticky='ew')
+                l = Label(fr, text=f"{val}")
+                l.config(font=font(new_size))
+                l.grid(row=i + 2, column=2, columnspan=2, sticky='ew')
+        fr.resizable(False, False)
+
+    font_s = 45
+    refresh(font_s)
     r.geometry(f"{convert(1920) // 2}x{convert(1080)}")
-    f = Frame()
-    f.place(relx=0.5, rely=0.5, anchor='center')
-    l = Label(f, text="Game")
-    l.config(font=font(int(font_size * 1.5)))
-    l.grid(row=0, column=0, columnspan=2)
+
     p = subprocess.Popen(["python", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
-    r.protocol("WM_DELETE_WINDOW", lambda: on_closing(root, p.pid))
+    r.protocol("WM_DELETE_WINDOW", partial(on_closing, root, p.pid))
+    opponent = client_send(client, f"SSP~{ROOM}~{NAME}")
 
 
 if __name__ == '__main__':

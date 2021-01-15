@@ -2,8 +2,11 @@ import sqlite3
 import settings
 
 
+
+
+
 class Room:
-    def __init__(self, name, new=True, points=-1):
+    def __init__(self, name, new=True, points=-1, pnames=''):
         self.name = name
         if new:
             conn = sqlite3.connect(settings.DB)
@@ -12,7 +15,7 @@ class Room:
             if c.fetchone():
                 conn.close()
                 raise FileExistsError(f"The name {self.name} has already been taken.")
-            c.execute(f"INSERT INTO rooms VALUES ('{self.name}', 1, {points})")
+            c.execute(f"INSERT INTO rooms VALUES ('{self.name}', 1, {points},'{pnames}')")
             conn.commit()
             conn.close()
 
@@ -29,16 +32,22 @@ class Room:
                 pass
             raise FileNotFoundError(f"Room {self.name} was not found.")
 
-    def remove_player(self):
+    def remove_player(self, pname):
         conn = sqlite3.connect(settings.DB)
         c = conn.cursor()
-        c.execute(f"SELECT players FROM rooms WHERE name='{self.name}'")
+        c.execute(f"SELECT players, pnames FROM rooms WHERE name='{self.name}'")
         x = c.fetchone()
         if not x:
             conn.close()
             raise FileNotFoundError(f"Room {self.name} was not found.")
         elif x[0] == 2:
-            c.execute(f"UPDATE rooms SET players=1 WHERE name='{self.name}'")
+            pnames = x[1].split(',')
+            try:
+                pnames.remove(pname)
+                pnames = ','.join(pnames)
+            except ValueError:
+                raise ValueError(f"Player {pname} was not found.")
+            c.execute(f"UPDATE rooms SET players=1, pnames='{pnames}' WHERE name='{self.name}'")
             conn.commit()
             conn.close()
         else:
@@ -46,16 +55,17 @@ class Room:
             conn.commit()
             conn.close()
 
-    def add_player(self):
+    def add_player(self, pname):
         conn = sqlite3.connect(settings.DB)
         c = conn.cursor()
-        c.execute(f"SELECT players FROM rooms WHERE name='{self.name}'")
+        c.execute(f"SELECT players, pnames FROM rooms WHERE name='{self.name}'")
         x = c.fetchone()
         if not x:
             conn.close()
             raise FileNotFoundError(f"Room {self.name} was not found.")
         elif x[0] == 1:
-            c.execute(f"UPDATE rooms SET players=2 WHERE name='{self.name}'")
+            pnames = ','.join([x[1], pname])
+            c.execute(f"UPDATE rooms SET players=2, pnames='{pnames}' WHERE name='{self.name}'")
             conn.commit()
             conn.close()
         else:
@@ -89,3 +99,14 @@ class Room:
         x = c.fetchall()
         conn.close()
         return [val[0] for val in x]
+
+    @staticmethod
+    def get_pnames(name):
+        conn = sqlite3.connect(settings.DB)
+        c = conn.cursor()
+        c.execute(f"SELECT pnames FROM rooms WHERE name='{name}'")
+        x = c.fetchone()
+        if not x:
+            raise FileNotFoundError(f"Room {name} was not found.")
+        conn.close()
+        return x
