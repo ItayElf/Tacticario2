@@ -70,6 +70,8 @@ get units array - GUA
     {HEADER}GUA~NUMBER_OF_UNITS
 get single unit - GSU
     {HEADER}GSU~{unit as str}
+forfeit - FRT
+    {HEADER}FRT
 
 
 ERRORS:
@@ -94,6 +96,8 @@ room is full - ERR8
     {HEADER}ERR~8
 attribute not found - ERR9
     {HEADER}ERR~9
+other player left - ERR10
+    {HEADER}ERR~10
 
 
 normal mode:

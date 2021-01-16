@@ -39,6 +39,10 @@ def handle_map(client, room, addr):
             lock.release()
     except OSError as e:
         rooms[room].remove(addr)
+        del clients[addr]
+        for ad in rooms[room]:
+            if ad is not addr:
+                send(clients[ad], f"FRT")
         raise OSError(e)
 
 

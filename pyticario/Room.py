@@ -2,9 +2,6 @@ import sqlite3
 import settings
 
 
-
-
-
 class Room:
     def __init__(self, name, new=True, points=-1, pnames=''):
         self.name = name
@@ -40,7 +37,7 @@ class Room:
         if not x:
             conn.close()
             raise FileNotFoundError(f"Room {self.name} was not found.")
-        elif x[0] == 2:
+        elif x[0] == 2 and len(x[1].split(',')) == 2:
             pnames = x[1].split(',')
             try:
                 pnames.remove(pname)

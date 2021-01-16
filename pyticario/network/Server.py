@@ -182,7 +182,7 @@ class Server:
     def create_room(params):
         lock.acquire()
         try:
-            Room.Room(params[1], True, params[2])
+            Room.Room(params[1], True, params[2], params[3])
             lock.release()
             send(params[0], "DON")
         except FileExistsError:
@@ -256,7 +256,7 @@ class Server:
             lock.release()
             pnames = pnames[0].split(',')
             if len(pnames) != 2:
-                Server.send_second_player(params)
+                return Server.send_second_player(params)
             pnames = [val for val in pnames if val != params[2]]
             send(params[0], f"GST~{pnames[0]}")
         except FileNotFoundError:

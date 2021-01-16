@@ -50,6 +50,9 @@ def client_send(soc, msg):
     except ConnectionAbortedError:
         messagebox.showerror("Connection Error", "Server seems to be shut down.")
         print("Server seems to be shut down.")
+    except socket.timeout:
+        messagebox.showerror("Connection Error", "Server seems to be shut down.")
+        print("Server seems to be shut down.")
 
 
 def convert(font):
@@ -596,6 +599,18 @@ def recruit(r):
 
 
 def game(r):
+    def go_back():
+        res = messagebox.askquestion("Forfeit", "Are you sure you want to forfeit?")
+        if res == "yes":
+            client_send(client, f"RPR~{ROOM}~{NAME}")
+            r.geometry(f"{convert(1920)}x{convert(1080)}")
+            try:
+                os.kill(p.pid, 9)
+            except PermissionError:
+                pass
+            r.protocol("WM_DELETE_WINDOW", partial(on_closing, root))
+            return home(r)
+
     def attack():
         def attacker_unit():
             all_units = client_send(client, f"SAU~{NAME}")
@@ -796,6 +811,9 @@ def game(r):
         atk = Button(f, text="Attack", command=attack)
         atk.config(font=font(font_size))
         atk.grid(row=2, column=2)
+        button = Button(r, text="Forfeit", command=go_back)
+        button.config(font=font(font_size // 2))
+        button.grid(row=2, column=1)
 
     font_s = 45
     refresh(font_s)

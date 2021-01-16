@@ -24,3 +24,7 @@ class Mapsock:
             cmd, p = parse(receive(params[0]))
             arr.append(Unit(*p[0].split(',')))
         return arr
+
+    @staticmethod
+    def forfeit(params):
+        return "ERR~10"

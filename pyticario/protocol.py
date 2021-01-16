@@ -2,6 +2,7 @@ from pyticario.network.Server import Server
 from pyticario.network.Client import Client
 from pyticario.network.Mapsock import Mapsock
 from pyticario.network.common import parse
+import sqlite3
 
 PORT = 1664
 
@@ -19,6 +20,9 @@ def server_parse(msg, client):
         Server.send_error(client, 1)
     except IndexError:
         Server.send_error(client, 1)
+    except sqlite3.OperationalError:
+        print("Database is blocked.")
+        return server_parse(msg, client)
 
 
 def client_parse(msg, client):

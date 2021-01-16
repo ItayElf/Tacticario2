@@ -4,6 +4,8 @@ from pyticario.graphics.Gunit import Unit
 from pyticario.network.common import receive, send
 from pyticario import protocol as ptr
 from pyticario.graphics.Map import Map
+import tkinter
+import tkinter.messagebox
 import threading as thr
 import pygame
 import socket
@@ -25,6 +27,13 @@ lock = thr.Lock()
 
 def convert(font):
     return int(font * ratio)
+
+
+def error_msg(title, body):
+    w = tkinter.Tk()
+    # w.wm_withdraw()
+    w.geometry("1x1+" + str(w.winfo_screenwidth() // 2) + "+" + str(w.winfo_screenheight() // 2))
+    tkinter.messagebox.showerror(title=title, message=body, parent=w)
 
 
 def map_send(soc, msg):
@@ -183,6 +192,9 @@ if __name__ == '__main__':
 
     running = True
     while running:
+        if m.units is None:
+            running = False
+            error_msg("You Are Alone", "The other player has disconnected or forfeited.\n You are free to click on forfeit to go back to the main screen.")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -220,7 +232,8 @@ if __name__ == '__main__':
                                                 text = text[:-1]
                                             elif ev.unicode.isdigit():
                                                 text += ev.unicode
-                                update_unt(Unit(unt.x, unt.y, int(text), unt.player, unt.rotation, unt.active), m.get_unit_at(x, y))
+                                update_unt(Unit(unt.x, unt.y, int(text), unt.player, unt.rotation, unt.active),
+                                           m.get_unit_at(x, y))
                             except TypeError:
                                 pass
                         else:

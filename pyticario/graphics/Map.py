@@ -94,9 +94,10 @@ class Map:
         return len([val for val in self.units if val.player == player_number]) if self.units else 0
 
     def get_unit_at(self, x, y):
-        for i, unt in enumerate(self.units):
-            if unt.x == x and unt.y == y:
-                return i
+        if self.units:
+            for i, unt in enumerate(self.units):
+                if unt.x == x and unt.y == y:
+                    return i
         return None
 
     def __str__(self):
