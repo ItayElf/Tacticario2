@@ -1,6 +1,7 @@
 import socket
-from pyticario.network.common import receive, send
+
 from pyticario import protocol as ptr
+from pyticario.network.common import receive, send
 
 IP = socket.gethostbyname(socket.gethostname())
 

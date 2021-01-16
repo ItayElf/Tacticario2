@@ -1,8 +1,9 @@
-from pyticario.network.Server import Server
+import sqlite3
+
 from pyticario.network.Client import Client
 from pyticario.network.Mapsock import Mapsock
+from pyticario.network.Server import Server
 from pyticario.network.common import parse
-import sqlite3
 
 PORT = 1664
 

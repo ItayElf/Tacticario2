@@ -1,8 +1,8 @@
-from pyticario.graphics.Gunit import Unit
-import random
-import pygame as pg
 import ctypes
 import os
+import random
+
+import pygame as pg
 
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080

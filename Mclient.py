@@ -1,17 +1,19 @@
+import ctypes
+import os
+import socket
+import sys
+import threading as thr
 import time
-from pyticario.graphics.Button import Button
-from pyticario.graphics.Gunit import Unit
-from pyticario.network.common import receive, send
-from pyticario import protocol as ptr
-from pyticario.graphics.Map import Map
 import tkinter
 import tkinter.messagebox
-import threading as thr
+
 import pygame
-import socket
-import ctypes
-import sys
-import os
+
+from pyticario import protocol as ptr
+from pyticario.graphics.Button import Button
+from pyticario.graphics.Gunit import Unit
+from pyticario.graphics.Map import Map
+from pyticario.network.common import receive, send
 
 try:
     IP = sys.argv[1]

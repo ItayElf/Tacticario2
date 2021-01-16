@@ -1,6 +1,7 @@
-import pygame
-import os
 import ctypes
+import os
+
+import pygame
 
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080

@@ -1,6 +1,7 @@
-from pyticario.network.common import send, receive, parse
-from pyticario.graphics.Gunit import Unit
 import re
+
+from pyticario.graphics.Gunit import Unit
+from pyticario.network.common import receive, parse
 
 
 class Mapsock:

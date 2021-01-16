@@ -1,7 +1,8 @@
 import socket
 import threading as thr
-from pyticario.network.common import receive, send
+
 from pyticario import protocol as ptr
+from pyticario.network.common import receive, send
 
 server = socket.socket()
 IP = "0.0.0.0"

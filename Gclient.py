@@ -1,8 +1,8 @@
-import re
 import ctypes
 import os
 import socket
 import subprocess
+import time
 import tkinter as tk
 from functools import partial
 from tkinter import *
@@ -157,7 +157,8 @@ def popup_unit(r, unitvar, rec_button=False):
     # unitup[-1] = unitup[-1].replace(',', ', ')
     args.remove(args[0])
     for i, (cat, val) in enumerate(zip(args, unitup)):
-        if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and (cat != 'Weight' and cat != 'Name' and cat != 'Description'):
+        if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and (
+                cat != 'Weight' and cat != 'Name' and cat != 'Description'):
             if cat == 'Attributes':
                 l = Label(fr, text=f"{cat}:")
                 l.config(font=font(new_size))
@@ -289,14 +290,19 @@ def register(r):
         except ConnectionRefusedError:
             messagebox.showerror("Connection Error", "Server seems to be shut down.")
             print("Server seems to be shut down.")
+        finally:
+            if re.findall("^[A-Za-z0-9_-]+$", name.get())[0] != name.get():
+                messagebox.showerror("Invalid Name", "Room name can only contain letters, numbers, underscores and dashes.")
+                print("Invalid Name.")
+                return
 
-        ans = client_send(client, f"CRP~{name.get()}~{password.get()}")
-        if ans == 'ERR4':
-            print("Name has already been taken.")
-            client_send(client, "DIS")
-            return register(r)
-        NAME = name.get()
-        return home(r)
+            ans = client_send(client, f"CRP~{name.get()}~{password.get()}")
+            if ans == 'ERR4':
+                print("Name has already been taken.")
+                client_send(client, "DIS")
+                return register(r)
+            NAME = name.get()
+            return home(r)
 
     reset(r)
     font_size = 60
@@ -487,6 +493,18 @@ def room_recruit(r):
     def recruit_click():
         return recruit(r)
 
+    def cont():
+        s = sum([val.cost for val in all_units])
+        if s < points or points < 0:
+            opponent = client_send(client, f"SSP~{ROOM}~{NAME}")
+            if opponent == "ERR11":
+                messagebox.showerror("Waiting for an Opponent",
+                                     f"You are the only one in this room.\nWait for another player to get in the room.")
+                return
+            return game(r, opponent)
+        messagebox.showerror("Exceeding Points Limit",
+                             f"You are {sum([val.cost for val in all_units]) - points} points over the point limit for this room.")
+
     reset(r)
     font_size = 60
     f = Frame()
@@ -536,7 +554,7 @@ def room_recruit(r):
     button = Button(f, text="Reset", command=reset_army)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=1)
-    button = Button(f, text="Continue", command=partial(game, r))
+    button = Button(f, text="Continue", command=cont)
     button.config(font=font(int(font_size // 1.5)))
     button.grid(row=4, column=2)
     button = Button(r, text="Leave", command=go_back)
@@ -598,7 +616,7 @@ def recruit(r):
     button.grid(row=2, column=1)
 
 
-def game(r):
+def game(r, opponent):
     def go_back():
         res = messagebox.askquestion("Forfeit", "Are you sure you want to forfeit?")
         if res == "yes":
@@ -607,7 +625,7 @@ def game(r):
             try:
                 os.kill(p.pid, 9)
             except PermissionError:
-                pass
+                print("permission denied")
             r.protocol("WM_DELETE_WINDOW", partial(on_closing, root))
             return home(r)
 
@@ -821,7 +839,6 @@ def game(r):
 
     p = subprocess.Popen(["python", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
     r.protocol("WM_DELETE_WINDOW", partial(on_closing, root, p.pid))
-    opponent = client_send(client, f"SSP~{ROOM}~{NAME}")
 
 
 if __name__ == '__main__':

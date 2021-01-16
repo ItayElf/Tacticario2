@@ -1,8 +1,9 @@
 import threading
+
 from pyticario import Player
-from pyticario import Unit
 from pyticario import Room
-from pyticario.network.common import send, receive
+from pyticario import Unit
+from pyticario.network.common import send
 
 lock = threading.Lock()
 
@@ -256,7 +257,8 @@ class Server:
             lock.release()
             pnames = pnames[0].split(',')
             if len(pnames) != 2:
-                return Server.send_second_player(params)
+                Server.send_error(params[0], 11)
+                return
             pnames = [val for val in pnames if val != params[2]]
             send(params[0], f"GST~{pnames[0]}")
         except FileNotFoundError:
