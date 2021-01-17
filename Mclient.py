@@ -80,7 +80,8 @@ def create_map(screen, ratios):
     print(res, PLAYER_NUMBER)
     if PLAYER_NUMBER == 1:
         a = Map(screen, [''] * (24 * 24))
-        a.generate_tiles_from_ratio(*ratios)
+        # a.generate_tiles_from_ratio(*ratios)
+        a.generate_tiles_from_config()
         send(client, f"GMP~{str(a)}")
         time.sleep(0.5)
         return a

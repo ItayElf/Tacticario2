@@ -1,4 +1,5 @@
 import ctypes
+import json
 import os
 import random
 
@@ -6,6 +7,7 @@ import pygame as pg
 
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
+config = os.path.join(os.path.dirname(__file__), "tilesconfig.json")
 
 tiles = {
     "dirt": os.path.join(os.path.dirname(os.path.abspath(__file__)), "imgs", 'tiles', 'dirt.png'),
@@ -20,6 +22,20 @@ tiles = {
 
 def convert(font):
     return int(font * ratio)
+
+
+def rotate(arr, rotation):
+    mapper = {"dirt": "dirt", "forest": "forest", "water": "water", "wall_up": "wall_right", "wall_right": "wall_down",
+              "wall_down": "wall_left", "wall_left": "wall_up"}
+    if rotation == 0:
+        return arr
+    a = [list(val) for val in list(zip(*arr[::-1]))]
+    c = [[[], [], [], []], [[], [], [], []], [[], [], [], []], [[], [], [], []]]
+    for i, row in enumerate(a):
+        for j, group in enumerate(row):
+            for k, item in enumerate(group):
+                c[i][j].append(mapper[item])
+    return rotate(c, rotation - 1)
 
 
 class Map:
@@ -56,6 +72,30 @@ class Map:
             rand_wall = wall_types[random.randint(0, len(wall_types) - 1)]
             tiles[rand_pos].append(rand_wall)
         self.tiles = list(map(lambda x: list(set(x)), random.sample(tiles, len(tiles))))
+
+    def generate_tiles_from_config(self):
+        def get_chunks():
+            chunks = []
+            keys = list(data.keys())
+            while len(chunks) != 36:
+                rand = random.randint(0, len(keys) - 1)
+                chunks.append((data[keys[rand]], random.randint(0, 3)))
+                keys.remove(keys[rand])
+                if not keys:
+                    keys = list(data.keys())
+            random.shuffle(chunks)
+            return chunks
+
+        with open(config) as f:
+            data = json.load(f)
+        chunks = [rotate(val[0], val[1]) for val in get_chunks()]
+        a = []
+        for i in range(6):
+            current = chunks[i * 6:i * 6 + 6]
+            for k in range(4):
+                for chunk in current:
+                    a += chunk[k]
+        self.tiles = a
 
     def draw_tiles(self):
         middle = u.GetSystemMetrics(1) // 2
@@ -117,6 +157,9 @@ class Map:
 
 
 if __name__ == '__main__':
-    m = Map(None, [])
-    m.generate_tiles_from_ratio(0.25, 0.2, 0.3)
-    print(m.tiles)
+    # m = Map(None, [])
+    # m.generate_tiles_from_ratio(0.25, 0.2, 0.3)
+    # print(m.tiles)
+    a = [[['forest'], ['forest'], ['dirt'], ['dirt']], [['dirt'], ['forest'], ['forest', 'wall_down'], ['forest', 'wall_left', 'wall_down']], [['dirt'], ['dirt'], ['dirt', 'wall_up'], ['forest', 'wall_left', 'wall_up']], [['dirt'], ['dirt'], ['dirt'], ['dirt']]]
+    for val in rotate2(a, 1):
+        print(val)
