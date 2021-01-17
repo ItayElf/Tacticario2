@@ -837,7 +837,7 @@ def game(r, opponent):
     refresh(font_s)
     r.geometry(f"{convert(1920) // 2}x{convert(1080)}")
 
-    p = subprocess.Popen(["python", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
+    p = subprocess.Popen(["pythonw", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
     r.protocol("WM_DELETE_WINDOW", partial(on_closing, root, p.pid))
 
 

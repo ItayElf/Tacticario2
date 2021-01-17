@@ -1,7 +1,6 @@
 import sqlite3
 
-import settings
-from pyticario import Unit
+from pyticario import Unit, settings
 
 unit_args = ['category', 'name', 'description', 'class', 'subclass', 'cost', 'men', 'weight', 'hitpoints',
              'armor', 'shield', 'morale', 'speed', 'melee_attack', 'defence', 'damage', 'ap', 'charge',

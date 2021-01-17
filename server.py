@@ -64,8 +64,10 @@ def handle_client(client, addr):
             quit()
 
 
-while True:
-    client, addr = server.accept()
-    clients[addr] = client
-    x = thr.Thread(target=handle_client, args=(client, addr))
-    x.start()
+if __name__ == '__main__':
+    print(f"Running on port {ptr.PORT}")
+    while True:
+        client, addr = server.accept()
+        clients[addr] = client
+        x = thr.Thread(target=handle_client, args=(client, addr))
+        x.start()

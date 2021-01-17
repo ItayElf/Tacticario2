@@ -1,6 +1,6 @@
 import sqlite3
 
-import settings
+from pyticario import settings
 
 
 class Room:

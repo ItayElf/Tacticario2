@@ -2,7 +2,7 @@ import math
 import random
 import sqlite3
 
-import settings
+from pyticario import settings
 
 
 class Unit(object):
