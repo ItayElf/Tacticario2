@@ -1,4 +1,6 @@
-![alt text](https://github.com/ItayElf/Tacticario2/blob/master/pyticario/graphics/imgs/logos/logo256.png?raw=true "Tacticario2")
+<p align="center">
+    <img width="256" height="256" src="https://github.com/ItayElf/Tacticario2/blob/master/pyticario/graphics/imgs/logos/logo256.png?raw=true">
+</p>
 
 # Setup
 1. Download the zip and unzip it or `git clone https://github.com/ItayElf/Tacticario2.git` to a folder on your computer.
