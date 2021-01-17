@@ -1,5 +1,7 @@
 import os
 
+from pyticario.settings import icon_ico_path
+
 
 def create_shortcut(path_to_file, cwd):
     with open("temp.bat", 'w') as f:
@@ -10,6 +12,7 @@ def create_shortcut(path_to_file, cwd):
                f'echo Set oLink = oWS.CreateShortcut(sLinkFile) >> %SCRIPT%\n' \
                f'echo oLink.TargetPath = "{path_to_file}" >> %SCRIPT%\n' \
                f'echo oLink.WorkingDirectory = "{cwd}" >> %SCRIPT%\n' \
+               f'echo oLink.IconLocation = "{icon_ico_path}" >> %SCRIPT%\n' \
                f'echo oLink.Save >> %SCRIPT%\n' \
                f'cscript /nologo %SCRIPT%\n' \
                f'del %SCRIPT%'

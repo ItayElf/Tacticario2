@@ -2,7 +2,6 @@ import ctypes
 import os
 import socket
 import subprocess
-import time
 import tkinter as tk
 from functools import partial
 from tkinter import *
@@ -10,6 +9,7 @@ from tkinter import messagebox
 
 from pyticario import protocol as ptr
 from pyticario.network.common import receive, send
+from pyticario.settings import icon_path
 
 IP = ''
 NAME = ''
@@ -66,7 +66,9 @@ def font(size):
 def setup():
     root = tk.Tk()
     root.title("Tacticario2")
-    root.geometry(f"{convert(1920)}x{convert(1080)}")
+    icon = PhotoImage(file=icon_path)
+    root.iconphoto(False, icon)
+    root.geometry(f"{convert(1920)}x{convert(1080)}+0+0")
     root.protocol("WM_DELETE_WINDOW", partial(on_closing, root))
 
     return root
@@ -115,6 +117,8 @@ def popup_unit(r, unitvar, rec_button=False):
 
         top = Toplevel(fr)
         top.title("Recruit")
+        icon = PhotoImage(icon_path)
+        top.iconphoto(False, icon)
         x = Label(top, text="Number of units:")
         x.config(font=font(25))
         x.grid(columnspan=7, sticky="ew")
@@ -135,6 +139,8 @@ def popup_unit(r, unitvar, rec_button=False):
 
     fr = Toplevel(r)
     fr.title(unitvar.name)
+    icon = PhotoImage(icon_path)
+    fr.iconphoto(icon)
     new_size = 15
 
     l = Label(fr, text=unitvar.name)
@@ -621,7 +627,7 @@ def game(r, opponent):
         res = messagebox.askquestion("Forfeit", "Are you sure you want to forfeit?")
         if res == "yes":
             client_send(client, f"RPR~{ROOM}~{NAME}")
-            r.geometry(f"{convert(1920)}x{convert(1080)}")
+            r.geometry(f"{convert(1920)}x{convert(1080)}+0+0")
             try:
                 os.kill(p.pid, 9)
             except PermissionError:
@@ -779,6 +785,8 @@ def game(r, opponent):
 
         fr = Toplevel(r)
         fr.title("Attack")
+        icon = PhotoImage(icon_path)
+        fr.iconphoto(icon)
         font_size = 25
         attacker_unit()
 
@@ -835,7 +843,7 @@ def game(r, opponent):
 
     font_s = 45
     refresh(font_s)
-    r.geometry(f"{convert(1920) // 2}x{convert(1080)}")
+    r.geometry(f"{convert(1920) // 2}x{convert(1080)}+0+0")
 
     p = subprocess.Popen(["pythonw", "Mclient.py", IP, ROOM, PLAYER_NUMBER])
     r.protocol("WM_DELETE_WINDOW", partial(on_closing, root, p.pid))

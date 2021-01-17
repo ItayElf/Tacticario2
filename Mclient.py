@@ -14,6 +14,7 @@ from pyticario.graphics.Button import Button
 from pyticario.graphics.Gunit import Unit
 from pyticario.graphics.Map import Map
 from pyticario.network.common import receive, send
+from pyticario.settings import icon_path
 
 try:
     IP = sys.argv[1]
@@ -72,7 +73,10 @@ def setup():
     # window
     os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (u.GetSystemMetrics(0) // 2, 0)
     pygame.init()
-    return pygame.display.set_mode((u.GetSystemMetrics(0) // 2, u.GetSystemMetrics(1)))
+    a = pygame.image.load(icon_path)
+    s = pygame.display.set_mode((u.GetSystemMetrics(0) // 2, u.GetSystemMetrics(1)))
+    pygame.display.set_icon(a)
+    return s
 
 
 def create_map(screen, ratios):
