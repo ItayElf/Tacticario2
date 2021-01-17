@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="256" height="256" src="https://github.com/ItayElf/Tacticario2/blob/master/pyticario/graphics/imgs/logos/logo256.png?raw=true">
+    <img width="256" height="256" src="https://github.com/ItayElf/Tacticario2/blob/master/pyticario/graphics/imgs/logos/logo.png?raw=true">
 </p>
 
 # Setup
