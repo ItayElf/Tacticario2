@@ -19,15 +19,60 @@ PID = -55
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
+theme = {
+    "root_background": "#121212",
+    "gui_background": "#1f1b24",
+    "gui_foreground": "#ffffff",
+    "button_clicked": "#282828",
+    "link": "#bb86fc"
+}
 
 
-class ScrollableFrame(tk.Frame):
+class Label(Label):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(bg=self.master["background"], fg=theme["gui_foreground"])
+
+
+class Frame(Frame):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(bg=self.master["background"])
+
+
+class Button(Button):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(bg=theme["root_background"], fg=theme["gui_foreground"], activebackground=theme["button_clicked"],
+                    activeforeground=theme["gui_foreground"])
+
+
+class Toplevel(Toplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(bg=theme["gui_background"])
+
+
+class Entry(Entry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(bg=self.master["background"], fg=theme["gui_foreground"])
+
+
+class Checkbutton(Checkbutton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(bg=self.master["background"], fg=theme["gui_foreground"], activebackground=theme["button_clicked"],
+                    activeforeground=theme["gui_foreground"], selectcolor=self.master["background"])
+
+
+class ScrollableFrame(Frame):
     def __init__(self, container, **kwargs):
         super().__init__(container, **kwargs)
         self.canvas = tk.Canvas(self)
+        self.canvas.config(bg=self.master["background"])
         self.scrollbar = Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.scrollable_frame = tk.Frame(self.canvas)
-
+        self.scrollable_frame = Frame(self.canvas)
         self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
@@ -60,7 +105,7 @@ def convert(font):
 
 
 def font(size):
-    return "Calibri Light", convert(size)
+    return "Californian FB", convert(size)
 
 
 def setup():
@@ -68,6 +113,7 @@ def setup():
     root.title("Tacticario2")
     icon = PhotoImage(file=icon_path)
     root.iconphoto(False, icon)
+    root.config(bg=theme["root_background"])
     root.geometry(f"{convert(1920)}x{convert(1080)}+0+0")
     root.protocol("WM_DELETE_WINDOW", partial(on_closing, root))
 
@@ -134,13 +180,25 @@ def popup_unit(r, unitvar, rec_button=False):
 
     def show_attribute(attribute, _e):
         attribute_tup = client_send(client, f"SAB~{attribute}")
-        print(attribute_tup)
-        messagebox.Message(title=attribute_tup[0], message=attribute_tup[1]).show()
+        top = Toplevel(fr)
+        top.title(attribute_tup[0])
+        ic = PhotoImage(file=icon_path)
+        fr.iconphoto(False, ic)
+        l = Label(top, text=attribute_tup[0])
+        l.config(font=font(new_size * 1.5))
+        l.grid(columnspan=3)
+        l = Label(top, text=attribute_tup[1])
+        l.config(font=font(new_size))
+        l.grid(row=1, columnspan=3)
+        b = Button(top, text="ok", command=top.destroy)
+        b.config(font=font(new_size))
+        b.grid(row=2, column=1)
+        top.resizable(False, False)
 
     fr = Toplevel(r)
     fr.title(unitvar.name)
-    icon = PhotoImage(icon_path)
-    fr.iconphoto(icon)
+    icon = PhotoImage(file=icon_path)
+    fr.iconphoto(False, icon)
     new_size = 15
 
     l = Label(fr, text=unitvar.name)
@@ -160,7 +218,6 @@ def popup_unit(r, unitvar, rec_button=False):
     unitup[1] = unitup[1].replace('.', '.\n')
     if unitup[1].endswith("\n"):
         unitup[1] = unitup[1][:-1]
-    # unitup[-1] = unitup[-1].replace(',', ', ')
     args.remove(args[0])
     for i, (cat, val) in enumerate(zip(args, unitup)):
         if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and (
@@ -170,8 +227,8 @@ def popup_unit(r, unitvar, rec_button=False):
                 l.config(font=font(new_size))
                 l.grid(row=i + 4, column=0, columnspan=2, sticky='ew')
                 for j, attr in enumerate(val.split(',')):
-                    l = Label(fr, text=f"{attr}", fg="blue", cursor="hand2")
-                    l.config(font=font(new_size))
+                    l = Label(fr, text=f"{attr}", cursor="hand2")
+                    l.config(font=font(new_size), fg=theme["link"])
                     l.grid(row=i + 4 + j, column=2, columnspan=2, sticky='ew')
                     l.bind("<Button-1>", partial(show_attribute, attr))
             else:
@@ -189,6 +246,29 @@ def popup_unit(r, unitvar, rec_button=False):
 
 
 def start(r):
+    global theme
+
+    def switch_mode():
+        global theme
+        if theme["root_background"] == "#121212":
+            theme = {
+                "root_background": "#ffffff",
+                "gui_background": "#faf5fe",
+                "gui_foreground": "#000000",
+                "button_clicked": "#e5e5e5",
+                "link": "#6200ee"
+            }
+        else:
+            theme = {
+                "root_background": "#121212",
+                "gui_background": "#1f1b24",
+                "gui_foreground": "#ffffff",
+                "button_clicked": "#282828",
+                "link": "#bb86fc"
+            }
+        r.config(bg=theme["root_background"])
+        return start(r)
+
     def goto_login():
         return login(r)
 
@@ -200,7 +280,7 @@ def start(r):
     f = Frame()
     f.place(relx=0.5, rely=0.5, anchor='center')
     l = Label(f, text="Welcome To Tacticario")
-    l.config(font=font(font_size))
+    l.config(font=font(font_size * 1.5))
     l.grid(row=1, column=1, columnspan=2)
     button = Button(f, text="Log In", command=goto_login)
     button.config(font=font(font_size))
@@ -208,6 +288,9 @@ def start(r):
     button = Button(f, text="Register", command=goto_register)
     button.config(font=font(font_size))
     button.grid(row=2, column=2)
+    button = Button(r, text="Light Mode" if theme["root_background"] == "#121212" else "Dark Mode", command=switch_mode)
+    button.config(font=font(font_size // 3))
+    button.grid()
 
 
 def login(r):
@@ -298,7 +381,8 @@ def register(r):
             print("Server seems to be shut down.")
         finally:
             if re.findall("^[A-Za-z0-9_-]+$", name.get())[0] != name.get():
-                messagebox.showerror("Invalid Name", "Room name can only contain letters, numbers, underscores and dashes.")
+                messagebox.showerror("Invalid Name",
+                                     "Room name can only contain letters, numbers, underscores and dashes.")
                 print("Invalid Name.")
                 return
 
@@ -466,15 +550,15 @@ def join_room(r):
     button.config(font=font(font_size // 2))
     button.grid(row=2, column=1)
     scroll_frame = ScrollableFrame(f)
-    scroll_frame.scrollable_frame.config(bg="white", width=convert(800), height=convert(500))
-    scroll_frame.canvas.config(bg="white", width=convert(800), height=convert(500))
+    scroll_frame.scrollable_frame.config(width=convert(800), height=convert(500))
+    scroll_frame.canvas.config(width=convert(800), height=convert(500))
     scroll_frame.grid(row=2, column=1)
     active_rooms = client_send(client, "SAR")
     active_points = client_send(client, 'SRP')
     for i, text in enumerate(active_rooms):
         point = f" - {active_points[i]} points." if int(active_points[i]) > 0 else " - No limit."
         l = Label(scroll_frame.scrollable_frame, text=(text + point), anchor='w')
-        l.config(font=font(int(font_size // 1.5)), bg="white")
+        l.config(font=font(int(font_size // 1.5)))
         l.bind("<Button-1>", partial(set_text, text))
         l.grid(row=i, sticky="ew")
 
@@ -520,7 +604,7 @@ def room_recruit(r):
     l.grid(row=0, column=0, columnspan=3)
     all_units = client_send(client, f"SAU~{NAME}")
     scroll = ScrollableFrame(f)
-    scroll.canvas.config(width=convert(850), height=convert(700))
+    scroll.canvas.config(width=convert(1000), height=convert(700))
     scroll.grid(row=2, column=0, columnspan=3, sticky='ew')
     l = Label(scroll.scrollable_frame, text="Remove")
     l.config(font=font(int(font_size // 1.5)))
@@ -785,8 +869,8 @@ def game(r, opponent):
 
         fr = Toplevel(r)
         fr.title("Attack")
-        icon = PhotoImage(icon_path)
-        fr.iconphoto(icon)
+        icon = PhotoImage(file=icon_path)
+        fr.iconphoto(False, icon)
         font_size = 25
         attacker_unit()
 
