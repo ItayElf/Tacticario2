@@ -98,6 +98,8 @@ attribute not found - ERR9
     {HEADER}ERR~9
 other player left - ERR10
     {HEADER}ERR~10
+connection error - ERR11
+    {HEADER}ERR~11
 
 
 normal mode:

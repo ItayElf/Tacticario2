@@ -92,12 +92,15 @@ def client_send(soc, msg):
     except ConnectionRefusedError:
         messagebox.showerror("Connection Error", "Server seems to be shut down.")
         print("Server seems to be shut down.")
+        return "ERR~11"
     except ConnectionAbortedError:
         messagebox.showerror("Connection Error", "Server seems to be shut down.")
         print("Server seems to be shut down.")
+        return "ERR~11"
     except socket.timeout:
         messagebox.showerror("Connection Error", "Server seems to be shut down.")
         print("Server seems to be shut down.")
+        return "ERR~11"
 
 
 def convert(font):

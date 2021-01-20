@@ -1,3 +1,5 @@
+import time
+
 from pyticario import Unit
 from pyticario.network.common import send, receive, parse
 
@@ -35,6 +37,7 @@ class Client:
             while not cmd:
                 cmd, p = parse(receive(params[0]))
             all_units.append(Unit.Unit(p))
+            time.sleep(.001)
         Client.done(params)
         return all_units
 
@@ -57,14 +60,17 @@ class Client:
 
     @staticmethod
     def get_integer(params):
+        Client.done(params)
         return int(params[1])
 
     @staticmethod
     def get_string(params):
+        Client.done(params)
         return params[1]
 
     @staticmethod
     def get_attribute(params):
+        Client.done(params)
         return params[1:]
 
     @staticmethod
