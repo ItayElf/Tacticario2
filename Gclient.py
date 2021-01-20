@@ -222,7 +222,7 @@ def popup_unit(r, unitvar, rec_button=False):
     for i, (cat, val) in enumerate(zip(args, unitup)):
         if (((type(val) == int or type(val) == float) and val > 0) or type(val) == str) and (
                 cat != 'Weight' and cat != 'Name' and cat != 'Description'):
-            if cat == 'Attributes':
+            if cat == 'Attributes' and val:
                 l = Label(fr, text=f"{cat}:")
                 l.config(font=font(new_size))
                 l.grid(row=i + 4, column=0, columnspan=2, sticky='ew')

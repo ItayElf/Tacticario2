@@ -4,7 +4,7 @@ import pygame
 class Button:
     def __init__(self, screen, position, text, text_size, func):
         self.clicked = False
-        self.f = pygame.font.SysFont("Ariel", text_size)
+        self.f = pygame.font.SysFont("Californian FB", text_size)
         self.text = text
         self.text_render = self.f.render(self.text, True, (255, 255, 255) if not self.clicked else (204, 204, 204))
         self.text_rect = self.text_render.get_rect()
