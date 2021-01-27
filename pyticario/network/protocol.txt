@@ -100,6 +100,8 @@ other player left - ERR10
     {HEADER}ERR~10
 connection error - ERR11
     {HEADER}ERR~11
+out of ammo - ERR12
+    {HEADER}ERR~12
 
 
 normal mode:

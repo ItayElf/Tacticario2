@@ -21,7 +21,7 @@ try:
     ROOM = sys.argv[2]
     PLAYER_NUMBER = int(sys.argv[3])
 except IndexError:
-    IP, ROOM, PLAYER_NUMBER = '127.0.0.1', 'aa', 1
+    IP, ROOM, PLAYER_NUMBER = '127.0.0.1', 'aa', 2
 u = ctypes.windll.user32
 ratio = u.GetSystemMetrics(1) / 1080
 client = socket.socket()
@@ -90,6 +90,7 @@ def create_map(screen, ratios):
         time.sleep(0.5)
         return a
     else:
+        time.sleep(0.5)
         tiles_arr = ptr.map_parse(receive(client), client)
         print(tiles_arr)
         return Map(screen, tiles_arr)

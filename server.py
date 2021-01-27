@@ -32,12 +32,13 @@ def handle_map(client, room, addr):
 
         while True:
             res = receive(client)
-            lock.acquire()
-            print(res)
-            for ad in rooms[room]:
-                if ad is not addr:
-                    send(clients[ad], res)
-            lock.release()
+            if res:
+                lock.acquire()
+                print(res)
+                for ad in rooms[room]:
+                    if ad is not addr:
+                        send(clients[ad], res)
+                lock.release()
     except OSError as e:
         rooms[room].remove(addr)
         del clients[addr]
@@ -59,7 +60,7 @@ def handle_client(client, addr):
             x = ptr.server_parse(receive(client), client)
             if x:
                 print(x)
-        except OSError as e:
+        except Exception as e:
             print(e)
             quit()
 

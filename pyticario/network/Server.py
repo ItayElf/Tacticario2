@@ -1,4 +1,5 @@
 import threading
+import time
 
 from pyticario import Player
 from pyticario import Room
@@ -157,6 +158,9 @@ class Server:
         except IndexError:
             lock.release()
             Server.send_error(params[0], 3)
+        except ValueError:
+            lock.release()
+            Server.send_error(params[0], 12)
 
     @staticmethod
     def is_dead_or_ran(params):

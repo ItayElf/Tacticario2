@@ -150,7 +150,6 @@ class Player:
                 value = f'"{value}"'
             text += f"{col}={value}, "
         text = text[:-2] + f'WHERE rowid = {uname_id}'
-        print(text)
         conn.cursor().execute(text)
         conn.commit()
         conn.close()

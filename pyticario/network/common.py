@@ -1,3 +1,4 @@
+import time
 
 HEADER = 6
 DELIMITER = '~'
@@ -12,7 +13,15 @@ def receive(soc):
     length = soc.recv(HEADER)
     if length:
         length = int(length)
-        return soc.recv(length).decode()
+        if length < 1000:
+            return soc.recv(length).decode()
+        index = 0
+        msg = ''
+        while index <= length:
+            msg += soc.recv(1000).decode()
+            index += 1000
+            time.sleep(0.05)
+        return msg
     return ''
 
 

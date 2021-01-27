@@ -166,7 +166,7 @@ def popup_unit(r, unitvar, rec_button=False):
 
         top = Toplevel(fr)
         top.title("Recruit")
-        icon = PhotoImage(icon_path)
+        icon = PhotoImage(file=icon_path)
         top.iconphoto(False, icon)
         x = Label(top, text="Number of units:")
         x.config(font=font(25))
